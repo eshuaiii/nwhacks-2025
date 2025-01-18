@@ -3,9 +3,13 @@ import './App.css';
 
 function App() {
   return (
-    <div>
-      <h1>Mapbox Example</h1>
-      <MapboxMap />
+    <div className="app-container">
+      <header className="app-header">
+        <h1>Mapbox Example</h1>
+      </header>
+      <main className="map-container">
+        <MapboxMap />
+      </main>
     </div>
   );
 }
