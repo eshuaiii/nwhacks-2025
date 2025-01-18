@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import MapboxMap from './components/maps';
-import UserProfile from './components/UserProfile';
+import EmergencyAssistance from './components/EmergencyAssistance';
 import './App.css';
 
 function App() {
@@ -9,19 +9,19 @@ function App() {
   return (
     <div className="app-container">
       <header className="app-header">
-        <h1>Mapbox Example</h1>
+        <h1>Emergency Dispatch System</h1>
         <nav className="tab-navigation">
           <div 
             className={`tab-item ${activeTab === 'dispatches' ? 'active' : ''}`}
             onClick={() => setActiveTab('dispatches')}
           >
-            Dispatches
+            Dispatcher View
           </div>
           <div 
             className={`tab-item ${activeTab === 'user' ? 'active' : ''}`}
             onClick={() => setActiveTab('user')}
           >
-            User
+            Request Emergency
           </div>
         </nav>
       </header>
@@ -29,7 +29,7 @@ function App() {
         {activeTab === 'dispatches' ? (
           <MapboxMap />
         ) : (
-          <UserProfile />
+          <EmergencyAssistance />
         )}
       </main>
     </div>
