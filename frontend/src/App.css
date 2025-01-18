@@ -40,3 +40,52 @@ body {
   border-radius: 8px;
   overflow: hidden;
 }
+
+.tab-navigation {
+  display: flex;
+  width: 100%;
+  background-color: #282c34;
+  border-bottom: 2px solid #3a3f48;
+}
+
+.tab-item {
+  padding: 1rem 2rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  color: #a0a0a0;
+}
+
+.tab-item:hover {
+  background-color: #363b44;
+  color: #ffffff;
+}
+
+.tab-item.active {
+  border-bottom: 2px solid #007bff;
+  color: #ffffff;
+}
+
+.user-section {
+  padding: 2rem;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.user-info {
+  margin-top: 2rem;
+}
+
+.profile-field {
+  margin-bottom: 1rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #eee;
+}
+
+.profile-field label {
+  font-weight: bold;
+  margin-right: 1rem;
+  min-width: 100px;
+  display: inline-block;
+}
