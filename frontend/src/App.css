@@ -26,18 +26,30 @@ body {
 
 .map-container {
   flex: 1;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 20px;
+  height: calc(100vh - 120px);
+  background-color: #282c34;
 }
 
-.map-container > div {
-  width: 100%;
-  height: 500px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-  border-radius: 8px;
-  overflow: hidden;
+.dispatcher-view {
+  display: flex;
+  height: 100%;
+  color: white;
+  background-color: #282c34;
+}
+
+.dispatcher-content {
+  flex: 1;
+  padding: 1rem;
+  overflow-y: auto;
+  background-color: #282c34;
+}
+
+.emergency-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1rem;
+  padding: 1rem;
+  background: none;
 }
 
 .tab-navigation {
@@ -271,4 +283,57 @@ body {
 
 .submit-button:hover:not(:disabled) {
   background-color: #c82333;
+}
+
+.incidents-list {
+  margin-top: 2rem;
+  padding: 1rem;
+}
+
+.incident-card {
+  background-color: #fff;
+  border: 1px solid #ddd;
+  border-left: 4px solid #dc3545;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  border-radius: 4px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.incident-card.resolved {
+  border-left-color: #28a745;
+  background-color: #f8f9fa;
+  opacity: 0.8;
+}
+
+.resolve-button {
+  background-color: #28a745;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.resolve-button:hover {
+  background-color: #218838;
+}
+
+.reopen-button {
+  background-color: #ffc107;
+  color: #000;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.reopen-button:hover {
+  background-color: #e0a800;
+}
+
+.incident-card p {
+  margin: 0.5rem 0;
 }
