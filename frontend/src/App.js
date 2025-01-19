@@ -45,7 +45,6 @@ function App() {
           </div>
         )}
         {activeTab === 'user' && <EmergencyAssistance />}
-        {activeTab === 'startStream' && <StartStream />}
       </main>
     </div>
   );
