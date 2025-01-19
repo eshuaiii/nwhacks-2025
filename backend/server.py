@@ -88,5 +88,9 @@ if __name__ == "__main__":
         db.create_all()
     
     print("Starting Flask server...")
+<<<<<<< HEAD
     socketio.run(flask_app, host="127.0.0.1", port=4287)
+=======
+    socketio.run(flask_app, host="127.0.0.1", port=3001)
+>>>>>>> nickBranch
     print("Server started!")
