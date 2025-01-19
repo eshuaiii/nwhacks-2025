@@ -184,6 +184,8 @@ function EmergencyAssistance() {
           },
           body: JSON.stringify(emergencyData),
         });
+        // wait a second before creating the stream
+        await new Promise(resolve => setTimeout(resolve, 1000));
 
         if (!response.ok) {
             throw new Error('Failed to create emergency.');
