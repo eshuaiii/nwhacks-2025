@@ -2,10 +2,8 @@ import React, { useState, useEffect } from "react";
 import Map, { Marker, Source, Layer } from "react-map-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 import axios from 'axios';
-import { io } from 'socket.io-client';  // Import socket.io-client
 
 const MyLocationMap = () => {
-  const [socket, setSocket] = useState(null);
   const mapboxAccessToken = process.env.REACT_APP_MAPBOX_API_KEY;
   const [viewport, setViewport] = useState({
     latitude: 37.7749,
@@ -17,39 +15,17 @@ const MyLocationMap = () => {
   const [route, setRoute] = useState(null);  // Route data
   const [emergencies, setEmergencies] = useState([]);
 
-  // Set up socket connection
-  useEffect(() => {
-    const newSocket = io("http://127.0.0.1:4287");
-    setSocket(newSocket);
-
-    newSocket.on('connect', () => {
-      console.log('Connected to server');
-    });
-
-    newSocket.on('disconnect', () => {
-      console.log('Disconnected from server');
-    });
-
-    newSocket.on('message_to_dispatcher', (data) => {
-        console.log('message_to_dispatcher:', data);
-    });
-
-    return () => {
-      newSocket.disconnect();
-    };
-  }, []);
-
   // Fetch emergencies initially
   useEffect(() => {
     const fetchEmergencies = async () => {
       try {
         const response = await axios.get('http://localhost:3001/api/emergencies');
+        console.log(response)
         setEmergencies(response.data);
       } catch (error) {
         console.error('Error fetching emergencies:', error);
       }
     };
-    
     fetchEmergencies();
     // Poll for updates every 30 seconds
     const interval = setInterval(fetchEmergencies, 30000);
