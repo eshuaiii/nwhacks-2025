@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { io } from 'socket.io-client';
 
 function EmergencyAssistance() {
+  const [socket, setSocket] = useState(null);
   const [isRequesting, setIsRequesting] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [formData, setFormData] = useState({
@@ -21,6 +23,23 @@ function EmergencyAssistance() {
     'Other'
   ];
 
+  useEffect(() => {
+    const newSocket = io("http://127.0.0.1:4287");
+    setSocket(newSocket);
+
+    newSocket.on('connect', () => {
+      console.log('Connected to server');
+    });
+
+    newSocket.on('disconnect', () => {
+      console.log('Disconnected from server');
+    });
+
+    return () => {
+      newSocket.disconnect();
+    };
+  }, []);
+
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
     setFormData(prev => ({
@@ -29,15 +48,11 @@ function EmergencyAssistance() {
     }));
   };
 
-  const handleEmergencyRequest = () => {
-    setShowModal(true);
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsRequesting(true);
 
-    // If user agreed to share location, get their coordinates
+    // Add location if sharing is enabled
     if (formData.shareLocation) {
       try {
         const position = await getCurrentLocation();
@@ -45,28 +60,55 @@ function EmergencyAssistance() {
           latitude: position.coords.latitude,
           longitude: position.coords.longitude
         };
+
+        // Start emitting location to the WebSocket server
+        console.log('start logging');
+        emitLocation(position.coords);
       } catch (error) {
         console.error('Error getting location:', error);
       }
     }
 
-    // Here you would send the formData to your backend
     console.log('Emergency Request Data:', formData);
+    await handleEmergencySubmit();
+  };
 
-    // Simulate API call
-    setTimeout(() => {
-      alert('Emergency services have been notified. Stay calm, help is on the way.');
-      setIsRequesting(false);
-      setShowModal(false);
-      setFormData({
-        emergencyType: '',
-        description: '',
-        location: '',
-        shareLocation: false,
-        contactNumber: '',
-        name: ''
+  const handleEmergencySubmit = async () => {
+    const emergencyData = {
+      emergencyType: formData.emergencyType,
+      description: formData.description,
+      location: formData.location,
+      contactName: formData.name,
+      contactNumber: formData.contactNumber,
+      latitude: formData.coordinates?.latitude || null,
+      longitude: formData.coordinates?.longitude || null
+    };
+
+    fetch('http://127.0.0.1:3001/api/emergency', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(emergencyData),
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error('Failed to create emergency.');
+        }
+        return response.json();
+      })
+      .then(() => {
+        alert('Emergency services have been notified. Stay calm, help is on the way.');
+        setShowModal(false);
+        resetForm();
+      })
+      .catch((error) => {
+        console.error('Error creating emergency:', error);
+        alert('Failed to notify emergency services. Please try again.');
+      })
+      .finally(() => {
+        setIsRequesting(false);
       });
-    }, 1000);
   };
 
   const getCurrentLocation = () => {
@@ -76,6 +118,49 @@ function EmergencyAssistance() {
       } else {
         navigator.geolocation.getCurrentPosition(resolve, reject);
       }
+    });
+  };
+
+  const emitLocation = (coords) => {
+      if (socket) {
+        console.log(socket);
+        socket.emit('message_to_dispatcher', {
+          sender: formData.name || 'Anonymous',
+          latitude: coords.latitude,
+          longitude: coords.longitude
+        });
+
+        // Start sending location updates every 5 seconds
+        const interval = setInterval(() => {
+          navigator.geolocation.getCurrentPosition((position) => {
+            const { latitude, longitude } = position.coords;
+            socket.emit('message_to_dispatcher', {
+              sender: formData.name || 'Anonymous',
+              latitude,
+              longitude
+            });
+            console.log({
+              sender: formData.name || 'Anonymous',
+              latitude,
+              longitude
+            });
+          });
+        }, 5000);
+
+        // Stop sending when the modal is closed
+        setShowModal(false);
+        return () => clearInterval(interval);
+      }
+    };
+
+  const resetForm = () => {
+    setFormData({
+      emergencyType: '',
+      description: '',
+      location: '',
+      shareLocation: false,
+      contactNumber: '',
+      name: ''
     });
   };
 
@@ -91,7 +176,7 @@ function EmergencyAssistance() {
         <div className="emergency-actions">
           <button 
             className="emergency-button"
-            onClick={handleEmergencyRequest}
+            onClick={() => setShowModal(true)}
           >
             Request Emergency Services
           </button>

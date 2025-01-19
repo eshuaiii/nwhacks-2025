@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import MapboxMap from './components/maps';
 import EmergencyAssistance from './components/EmergencyAssistance';
-import DispatcherView from './components/DispatcherView';
 import './App.css';
 
 function App() {
@@ -36,7 +35,6 @@ function App() {
         {activeTab === 'dispatches' ? (
           <div className="dispatcher-container">
             <MapboxMap />
-            <DispatcherView />
           </div>
         ) : (
           <EmergencyAssistance />
