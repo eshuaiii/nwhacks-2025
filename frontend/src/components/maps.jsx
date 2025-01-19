@@ -64,13 +64,13 @@ const MyLocationMap = () => {
   };
 
   const fetchEmergencies = async () => {
-      try {
-        const response = await axios.get('http://localhost:3001/api/emergencies');
-        console.log(response)
-        setEmergencies(response.data);
-      } catch (error) {
-        console.error('Error fetching emergencies:', error);
-      }
+    try {
+      const response = await axios.get('http://localhost:3001/api/emergencies');
+      console.log(response)
+      setEmergencies(response.data);
+    } catch (error) {
+      console.error('Error fetching emergencies:', error);
+    }
   };
 
   const deleteEmergency = async (emergencyId) => {
@@ -127,6 +127,7 @@ const MyLocationMap = () => {
     setSelectedEmergency(null);
     setRoute(null);
   };
+
 
   return (
     <div style={{ display: "flex", height: "80vh", width: "90vw" }}>  {/* Adjusting width and height */}
@@ -272,8 +273,6 @@ const exitButtonStyle = {
   fontSize: "16px",
   cursor: "pointer",
   marginTop: "10px",
-  marginLeft: "10px",
-  marginRight: "10px"
 };
 
 const panelStyle = {

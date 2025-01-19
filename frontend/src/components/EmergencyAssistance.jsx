@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-// import { io } from 'socket.io-client';
 import StartStream from './StartStream';
 import { createStream } from './StreamCreator';
 
@@ -235,125 +234,128 @@ function EmergencyAssistance() {
 
   return (
     <div className="emergency-section">
-      <h2>Emergency Assistance</h2>
+      {showStartStream ? (
+        <>
+          <p>Hello</p>
+          <StartStream streamKey={streamKey} />
+        </>
+      ) : (
+        <>
+          <h2>Emergency Assistance</h2>
 
-      <div className="emergency-info">
-        <p className="emergency-notice">
-          If this is a life-threatening emergency, immediately call 911 directly.
-        </p>
+          <div className="emergency-info">
+            <p className="emergency-notice">
+              If this is a life-threatening emergency, immediately call 911 directly.
+            </p>
 
-        <div className="emergency-instructions">
-          <h3>Important Instructions:</h3>
-          <ol>
-            <li>Stay calm and remain in a safe location</li>
-            <li>Keep your phone nearby</li>
-            <li>Follow any instructions provided by emergency dispatchers</li>
-            <li>If possible, send someone to meet emergency responders</li>
-          </ol>
-        </div>
+            <div className="emergency-instructions">
+              <h3>Important Instructions:</h3>
+              <ol>
+                <li>Stay calm and remain in a safe location</li>
+                <li>Keep your phone nearby</li>
+                <li>Follow any instructions provided by emergency dispatchers</li>
+                <li>If possible, send someone to meet emergency responders</li>
+              </ol>
+            </div>
 
-        <div className="emergency-actions">
-          <button
-            className="emergency-button"
-            onClick={() => setShowModal(true)}
-          >
-            Request Emergency Services
-          </button>
-        </div>
-      </div>
-
-      {/* Modal for entering emergency details */}
-      {showModal && (
-        <div className="modal-overlay">
-          <div className="modal-content">
-            <h3>Emergency Request Details</h3>
-            <form onSubmit={handleSubmit}>
-              <div className="form-group">
-                <label>Type of Emergency:</label>
-                <select
-                  name="emergencyType"
-                  value={formData.emergencyType}
-                  onChange={handleInputChange}
-                  required
-                >
-                  <option value="">Select Emergency Type</option>
-                  {['Medical Emergency', 'Fire', 'Police Emergency', 'Traffic Accident', 'Natural Disaster', 'Other'].map(type => (
-                    <option key={type} value={type}>{type}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="form-group">
-                <label>Your Name:</label>
-                <input
-                  type="text"
-                  name="name"
-                  value={formData.name}
-                  onChange={handleInputChange}
-                  required
-                />
-              </div>
-
-              <div className="form-group">
-                <label>Contact Number:</label>
-                <input
-                  type="tel"
-                  name="contactNumber"
-                  value={formData.contactNumber}
-                  onChange={handleInputChange}
-                  required
-                />
-              </div>
-
-              <div className="form-group">
-                <label>Description of Emergency:</label>
-                <textarea
-                  name="description"
-                  value={formData.description}
-                  onChange={handleInputChange}
-                  required
-                  placeholder="Please provide details about the emergency..."
-                />
-              </div>
-
-              <div className="form-group checkbox">
-                <label>
-                  <input
-                    type="checkbox"
-                    name="shareLocation"
-                    checked={formData.shareLocation}
-                    onChange={handleInputChange}
-                  />
-                  Share my current location
-                </label>
-              </div>
-
-              <div className="modal-actions">
-                <button
-                  type="button"
-                  onClick={() => setShowModal(false)}
-                  className="cancel-button"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="submit-button"
-                  disabled={isRequesting}
-                >
-                  {isRequesting ? 'Sending Request...' : 'Send Emergency Request'}
-                </button>
-              </div>
-            </form>
+            <div className="emergency-actions">
+              <button
+                className="emergency-button"
+                onClick={() => setShowModal(true)}
+              >
+                Request Emergency Services
+              </button>
+            </div>
           </div>
-        </div>
+
+          {/* Modal for entering emergency details */}
+          {showModal && (
+            <div className="modal-overlay">
+              <div className="modal-content">
+                <h3>Emergency Request Details</h3>
+                <form onSubmit={handleSubmit}>
+                  <div className="form-group">
+                    <label>Type of Emergency:</label>
+                    <select
+                      name="emergencyType"
+                      value={formData.emergencyType}
+                      onChange={handleInputChange}
+                      required
+                    >
+                      <option value="">Select Emergency Type</option>
+                      {['Medical Emergency', 'Fire', 'Police Emergency', 'Traffic Accident', 'Natural Disaster', 'Other'].map(type => (
+                        <option key={type} value={type}>{type}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="form-group">
+                    <label>Your Name:</label>
+                    <input
+                      type="text"
+                      name="name"
+                      value={formData.name}
+                      onChange={handleInputChange}
+                      required
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label>Contact Number:</label>
+                    <input
+                      type="tel"
+                      name="contactNumber"
+                      value={formData.contactNumber}
+                      onChange={handleInputChange}
+                      required
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label>Description of Emergency:</label>
+                    <textarea
+                      name="description"
+                      value={formData.description}
+                      onChange={handleInputChange}
+                      required
+                      placeholder="Please provide details about the emergency..."
+                    />
+                  </div>
+
+                  <div className="form-group checkbox">
+                    <label>
+                      <input
+                        type="checkbox"
+                        name="shareLocation"
+                        checked={formData.shareLocation}
+                        onChange={handleInputChange}
+                      />
+                      Share my current location
+                    </label>
+                  </div>
+
+                  <div className="modal-actions">
+                    <button
+                      type="button"
+                      onClick={() => setShowModal(false)}
+                      className="cancel-button"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      className="submit-button"
+                      disabled={isRequesting}
+                    >
+                      {isRequesting ? 'Sending Request...' : 'Send Emergency Request'}
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          )}
+        </>
       )}
-
-      {/* Display the streamKey for debugging if you want */}
-      <p>{streamKey}</p>
-
-      {/* Conditionally render StartStream once we have a streamKey */}
-      {showStartStream && <StartStream streamKey={streamKey} />}
     </div>
   );
 }

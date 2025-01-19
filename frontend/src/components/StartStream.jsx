@@ -3,8 +3,8 @@ import React from 'react';
 export default function StartStream({ streamKey }) {
     console.log("from startstream: ", streamKey);
     return (
-        <div style={{ width: "100%", height: "100%" }}>
-            <iframe
+        <div style={{ height: "45vh" }}>
+            <iframe style={{ width: "70%", height: "100%" }}
                 src={`https://lvpr.tv/broadcast/${streamKey}`}
                 allowfullscreen
                 allow="autoplay; encrypted-media; fullscreen; picture-in-picture; display-capture; camera; microphone"
