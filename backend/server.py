@@ -1,30 +1,15 @@
 from flask import Flask
 from flask_socketio import SocketIO, emit
-from fastapi import FastAPI
-from fastapi.middleware.wsgi import WSGIMiddleware
-from werkzeug.middleware.dispatcher import DispatcherMiddleware
+from app.routes import register_routes
 
 # Initialize Flask app
-flask_app = Flask(__name__)
-
-# Initialize FastAPI app
-fastapi_app = FastAPI()
+flask_app = Flask(__name__, template_folder="app/templates")
 
 # Initialize Flask-SocketIO
 socketio = SocketIO(flask_app, cors_allowed_origins="*")
 
-# Register Flask routes and socket handlers
-def register_routes(app):
-    @app.route("/")
-    def index():
-        return "ok"
-
+# Register Flask routes
 register_routes(flask_app)
-
-# Combine Flask and FastAPI using DispatcherMiddleware
-flask_app.wsgi_app = DispatcherMiddleware(flask_app.wsgi_app, {
-    "/fastapi": WSGIMiddleware(fastapi_app),
-})
 
 # WebSocket event handlers
 @socketio.on('connect')
@@ -45,5 +30,5 @@ def handle_message_to_dispatcher(data):
 
 if __name__ == "__main__":
     print("Starting Flask server...")
-    socketio.run(flask_app, host="127.0.0.1", port=3000)
+    socketio.run(flask_app, host="127.0.0.1", port=4287)
     print("Server started!")
