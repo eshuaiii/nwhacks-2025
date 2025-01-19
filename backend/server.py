@@ -1,9 +1,8 @@
 from flask import Flask
-from flask_socketio import SocketIO, emit
-from app.routes import register_routes
-import json
+from flask_socketio import SocketIO
 from flask_cors import CORS
 from models import db
+from routes import register_routes
 from dotenv import load_dotenv
 import os
 
@@ -11,7 +10,7 @@ import os
 load_dotenv()
 
 # Initialize Flask app
-flask_app = Flask(__name__, template_folder="app/templates")
+flask_app = Flask(__name__)
 
 # Configure CORS
 CORS(flask_app, resources={
@@ -23,70 +22,34 @@ CORS(flask_app, resources={
 })
 
 # Configure database
-db_config = {
-    'username': os.getenv('DB_USER'),
-    'password': os.getenv('DB_PASSWORD'),
-    'host': os.getenv('DB_HOST'),
-    'port': os.getenv('DB_PORT'),
-    'name': os.getenv('DB_NAME')
-}
-
-# Verify all required environment variables are present
-for key, value in db_config.items():
-    if value is None:
-        raise ValueError(f"Missing required environment variable: DB_{key.upper()}")
-
-flask_app.config['SQLALCHEMY_DATABASE_URI'] = f"postgresql://{db_config['username']}:{db_config['password']}@{db_config['host']}:{db_config['port']}/{db_config['name']}"
+flask_app.config['SQLALCHEMY_DATABASE_URI'] = f"postgresql://{os.getenv('DB_USER')}:{os.getenv('DB_PASSWORD')}@{os.getenv('DB_HOST')}:{os.getenv('DB_PORT')}/{os.getenv('DB_NAME')}"
 flask_app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # Initialize extensions
 db.init_app(flask_app)
-socketio = SocketIO(flask_app, cors_allowed_origins="*")
 
-# Register Flask routes
-register_routes(flask_app)
+# Initialize SocketIO with separate port
+socketio = SocketIO(flask_app, 
+    cors_allowed_origins="*",
+    async_mode='gevent'  # Use gevent for better performance
+)
 
-# WebSocket event handlers
-@socketio.on('connect')
-def handle_connect():
-    print("Client connected")
-
-@socketio.on('disconnect')
-def handle_disconnect():
-    print("Client disconnected")
-
-@socketio.on('message_to_dispatcher')
-def handle_message_to_dispatcher(data):
-    print(f"Received data: {data}")
-
-    sender = data.get('sender')
-    message = data.get('message')
-    print(f"Extracted sender: {sender}")
-    print(f"Extracted message: {message}")
-
-    # Parse the message to extract latitude and longitude
-    try:
-        lat_part, lon_part = message.split(", ")
-        lat = lat_part.split(": ")[1]
-        lon = lon_part.split(": ")[1]
-    except (IndexError, ValueError) as e:
-        print(f"Error parsing message: {e}")
-        return
-
-    # Format the data into JSON
-    formatted_data = json.dumps({
-        "sender": sender,
-        "latitude": lat,
-        "longitude": lon
-    })
-
-    # Broadcast the message to the dispatcher
-    emit('message_from_client', formatted_data, broadcast=True)
+# Register routes
+register_routes(flask_app, socketio)
 
 if __name__ == "__main__":
     with flask_app.app_context():
         db.create_all()
     
-    print("Starting Flask server...")
-    socketio.run(flask_app, host="127.0.0.1", port=4287)
-    print("Server started!")
+    # Run HTTP server on port 3001
+    from gevent import pywsgi
+    from geventwebsocket.handler import WebSocketHandler
+    
+    # Start HTTP server on 3001
+    http_server = pywsgi.WSGIServer(('0.0.0.0', 3001), flask_app)
+    print("Starting HTTP server on port 3001...")
+    http_server.start()
+    
+    # Start WebSocket server on 4287
+    print("Starting WebSocket server on port 4287...")
+    socketio.run(flask_app, host='0.0.0.0', port=4287)

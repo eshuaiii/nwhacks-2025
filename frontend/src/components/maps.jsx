@@ -65,20 +65,24 @@ const MyLocationMap = () => {
   }, []);
 
   function init() {
-    socket = io("http://127.0.0.1:3001");
+    // TODO: FIX Socket on the FrontEnd
+    // socket = io("http://localhost:3001", {
+    //     transports: ['websocket'],
+    //     path: '/socket.io'
+    // });
 
-    socket.on('connect', () => {
-        console.log('Connected to server');
-    });
+    // socket.on('connect', () => {
+    //     console.log('Connected to server');
+    // });
 
-    socket.on('disconnect', () => {
-        console.log('Disconnected from server');
-    });
+    // socket.on('disconnect', () => {
+    //     console.log('Disconnected from server');
+    // });
 
-    socket.on('message_from_client', (data) => {
-        updateUsers(data);
-        console.log('Message from client:', data);
-    });
+    // socket.on('message_from_client', (data) => {
+    //     updateUsers(data);
+    //     console.log('Message from client:', data);
+    // });
 }
 
   const updateUsers = (newUser) => {
