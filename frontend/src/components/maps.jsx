@@ -78,8 +78,7 @@ const MyLocationMap = () => {
       setViewport({
         ...viewport,
         latitude: user.latitude,
-        longitude: user.longitude,
-        zoom: 14,  // Optionally adjust zoom when user is selected
+        longitude: user.longitude
       });
     }
   };
@@ -91,8 +90,8 @@ const MyLocationMap = () => {
   };
 
   return (
-    <div style={{ display: "flex" }}>
-      <div style={{ width: "250px", padding: "20px", overflowY: "scroll" }}>
+    <div style={{ display: "flex", height: "80vh", width: "90vw" }}>  {/* Adjusting width and height */}
+      <div style={{ width: "250px", padding: "20px", overflowY: "scroll", flex: "0 0 250px" }}>
         <h3>User List</h3>
         {users.map((user) => (
           <div
@@ -112,7 +111,7 @@ const MyLocationMap = () => {
         ))}
       </div>
 
-      <div style={{ position: "relative", height: "500px", flex: 1 }}>
+      <div style={{ position: "relative", flex: 1 }}>
         <Map
           {...viewport}
           onMove={(evt) => setViewport(evt.viewState)}
@@ -183,7 +182,6 @@ const MyLocationMap = () => {
         {selectedUser && (
           <div style={panelStyle}>
             <h3>Navigation to {selectedUser.name}</h3>
-            <p>From your location to {selectedUser.name}'s location</p>
             <button onClick={handleExitClick} style={exitButtonStyle}>Exit</button>
           </div>
         )}
