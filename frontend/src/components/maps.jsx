@@ -273,6 +273,8 @@ const exitButtonStyle = {
   fontSize: "16px",
   cursor: "pointer",
   marginTop: "10px",
+  marginLeft: "10px",
+  marginRight: "10px"
 };
 
 const panelStyle = {
