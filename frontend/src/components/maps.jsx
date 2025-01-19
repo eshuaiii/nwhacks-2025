@@ -2,8 +2,10 @@ import React, { useState, useEffect } from "react";
 import Map, { Marker, Source, Layer } from "react-map-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 import axios from 'axios';
+import { io } from 'socket.io-client';
 
 const MyLocationMap = () => {
+  const [socket, setSocket] = useState(null);
   const mapboxAccessToken = process.env.REACT_APP_MAPBOX_API_KEY;
   const [viewport, setViewport] = useState({
     latitude: 37.7749,
@@ -14,6 +16,28 @@ const MyLocationMap = () => {
   const [selectedEmergency, setSelectedEmergency] = useState(null);
   const [route, setRoute] = useState(null);  // Route data
   const [emergencies, setEmergencies] = useState([]);
+
+  // Set up socket connection
+  useEffect(() => {
+    const newSocket = io("http://127.0.0.1:4287");
+    setSocket(newSocket);
+
+    newSocket.on('connect', () => {
+      console.log('Connected to server');
+    });
+
+    newSocket.on('disconnect', () => {
+      console.log('Disconnected from server');
+    });
+
+    newSocket.on('message_to_dispatcher', (data) => {
+      console.log('message_to_dispatcher:', data);
+    });
+
+    return () => {
+      newSocket.disconnect();
+    };
+  }, []);
 
   // Fetch emergencies initially
   useEffect(() => {
@@ -155,7 +179,7 @@ const MyLocationMap = () => {
 
           {/* Markers for emergencies */}
           {emergencies.map((emergency) => (
-            <Marker 
+            <Marker
               key={emergency.id}
               latitude={emergency.latitude}
               longitude={emergency.longitude}
@@ -208,6 +232,13 @@ const MyLocationMap = () => {
             <p>{selectedEmergency.description}</p>
             <p><strong>Location:</strong> {selectedEmergency.location}</p>
             <p><strong>Contact:</strong> {selectedEmergency.contactName} ({selectedEmergency.contactNumber})</p>
+            <iframe
+              src="https://lvpr.tv?v=fd4bhyp1g0j3288m"
+              allowfullscreen
+              allow="autoplay; encrypted-media; fullscreen; picture-in-picture"
+              frameborder="0"
+            >
+            </iframe>
             <button onClick={handleExitClick} style={exitButtonStyle}>Exit</button>
           </div>
         )}
