@@ -3,6 +3,9 @@ import Map, { Marker, Source, Layer } from "react-map-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 import axios from 'axios';
 
+import io from 'socket.io-client';
+
+
 const MyLocationMap = () => {
   const mapboxAccessToken = process.env.REACT_APP_MAPBOX_API_KEY;
   const [viewport, setViewport] = useState({
@@ -13,6 +16,7 @@ const MyLocationMap = () => {
   const [userLocation, setUserLocation] = useState(null);
   const [selectedEmergency, setSelectedEmergency] = useState(null);
   const [route, setRoute] = useState(null);  // Route data
+
   const [emergencies, setEmergencies] = useState([]);
 
   // Fetch emergencies
@@ -32,8 +36,14 @@ const MyLocationMap = () => {
     return () => clearInterval(interval);
   }, []);
 
+  const [users, setUsers] = useState([]);  // Track users
+
+  let socket;
+
+
   // Get user's location
   useEffect(() => {
+    init();
     if ("geolocation" in navigator) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
@@ -54,6 +64,48 @@ const MyLocationMap = () => {
     }
   }, []);
 
+  function init() {
+    socket = io("http://127.0.0.1:3001");
+
+    socket.on('connect', () => {
+        console.log('Connected to server');
+    });
+
+    socket.on('disconnect', () => {
+        console.log('Disconnected from server');
+    });
+
+    socket.on('message_from_client', (data) => {
+        updateUsers(data);
+        console.log('Message from client:', data);
+    });
+}
+
+  const updateUsers = (newUser) => {
+    console.log(newUser);
+    if (newUser) {
+      setUsers((prevUsers) => {
+        // Check if the user with the same ID exists
+        const existingUserIndex = prevUsers.findIndex(user => user.id === newUser.id);
+
+        if (existingUserIndex >= 0) {
+          // If the user exists, update their latitude and longitude
+          const updatedUsers = [...prevUsers];
+          updatedUsers[existingUserIndex] = {
+            ...updatedUsers[existingUserIndex],
+            latitude: newUser.latitude,
+            longitude: newUser.longitude,
+          };
+          return updatedUsers;
+        } else {
+          // If the user does not exist, add the new user to the list
+          return [...prevUsers, newUser];
+        }
+      });
+    }
+  };
+
+
   // Fetch route data from Mapbox Directions API
   const fetchRoute = (startLat, startLon, endLat, endLon) => {
     const url = `https://api.mapbox.com/directions/v5/mapbox/driving/${startLon},${startLat};${endLon},${endLat}?geometries=geojson&access_token=${mapboxAccessToken}`;
@@ -61,6 +113,7 @@ const MyLocationMap = () => {
       .then((response) => response.json())
       .then((data) => {
         const routeData = data.routes[0].geometry.coordinates;
+        console.log(routeData);
         setRoute(routeData);
       })
       .catch((error) => console.error("Error fetching route data:", error));
