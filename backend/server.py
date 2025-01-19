@@ -20,7 +20,7 @@ flask_app = Flask(__name__)
 CORS(flask_app, resources={
         r"/api/*": {
             "origins": ["http://localhost:3000", "http://localhost:3001"],
-            "methods": ["GET", "POST", "PUT", "OPTIONS"],
+            "methods": ["GET", "POST", "PUT", "OPTIONS", "DELETE"],
             "allow_headers": ["Content-Type"]
         }
     })
@@ -44,25 +44,15 @@ def run_http_server():
     print("Starting HTTP server on port 3001...")
     http_server.serve_forever()
 
-# Function to run the SocketIO WebSocket server
-def run_websocket_server():
-    print("Starting WebSocket server on port 4287...")
-    socketio.run(flask_app, host='0.0.0.0', port=4287)
-
 if __name__ == "__main__":
     with flask_app.app_context():
         db.create_all()
 
     # Run both servers in separate processes
     http_process = Process(target=run_http_server)
-    websocket_process = Process(target=run_websocket_server)
 
     # Start HTTP server
     http_process.start()
 
-    # Start WebSocket server
-    websocket_process.start()
-
     # Wait for both processes to finish
     http_process.join()
-    websocket_process.join()
