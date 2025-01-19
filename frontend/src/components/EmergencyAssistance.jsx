@@ -161,18 +161,6 @@ function EmergencyAssistance() {
                 />
               </div>
 
-              <div className="form-group">
-                <label>Location/Address:</label>
-                <input
-                  type="text"
-                  name="location"
-                  value={formData.location}
-                  onChange={handleInputChange}
-                  required
-                  placeholder="Enter street address"
-                />
-              </div>
-
               <div className="form-group checkbox">
                 <label>
                   <input
