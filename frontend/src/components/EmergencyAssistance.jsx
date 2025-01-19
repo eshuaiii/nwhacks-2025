@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { io } from 'socket.io-client';
+import StartStream from './StartStream';
+import { createStream } from './StreamCreator';
 
 function EmergencyAssistance() {
   const [socket, setSocket] = useState(null);
@@ -13,15 +15,8 @@ function EmergencyAssistance() {
     contactNumber: '',
     name: ''
   });
-
-  const emergencyTypes = [
-    'Medical Emergency',
-    'Fire',
-    'Police Emergency',
-    'Traffic Accident',
-    'Natural Disaster',
-    'Other'
-  ];
+  const [showStartStream, setShowStartStream] = useState(false);
+  const [streamKey, setStreamKey] = useState(''); // Use React state for the streamKey
 
   useEffect(() => {
     const newSocket = io("http://127.0.0.1:4287");
@@ -62,14 +57,13 @@ function EmergencyAssistance() {
         };
 
         // Start emitting location to the WebSocket server
-        console.log('start logging');
         emitLocation(position.coords);
       } catch (error) {
         console.error('Error getting location:', error);
       }
     }
 
-    console.log('Emergency Request Data:', formData);
+    // Now actually send request to backend
     await handleEmergencySubmit();
   };
 
@@ -86,9 +80,7 @@ function EmergencyAssistance() {
 
     fetch('http://127.0.0.1:3001/api/emergency', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(emergencyData),
     })
       .then((response) => {
@@ -97,10 +89,18 @@ function EmergencyAssistance() {
         }
         return response.json();
       })
-      .then(() => {
+      .then(async () => {
         alert('Emergency services have been notified. Stay calm, help is on the way.');
         setShowModal(false);
         resetForm();
+
+        // Now create the stream, capturing its key
+        const key = await createStream();
+        console.log('EmergencyAssistance then:', key);
+        setStreamKey(key);
+
+        // Finally show the StartStream component
+        setShowStartStream(true);
       })
       .catch((error) => {
         console.error('Error creating emergency:', error);
@@ -122,36 +122,35 @@ function EmergencyAssistance() {
   };
 
   const emitLocation = (coords) => {
-      if (socket) {
-        console.log(socket);
-        socket.emit('message_to_dispatcher', {
-          sender: formData.name || 'Anonymous',
-          latitude: coords.latitude,
-          longitude: coords.longitude
-        });
+    if (socket) {
+      socket.emit('message_to_dispatcher', {
+        sender: formData.name || 'Anonymous',
+        latitude: coords.latitude,
+        longitude: coords.longitude
+      });
 
-        // Start sending location updates every 5 seconds
-        const interval = setInterval(() => {
-          navigator.geolocation.getCurrentPosition((position) => {
-            const { latitude, longitude } = position.coords;
-            socket.emit('message_to_dispatcher', {
-              sender: formData.name || 'Anonymous',
-              latitude,
-              longitude
-            });
-            console.log({
-              sender: formData.name || 'Anonymous',
-              latitude,
-              longitude
-            });
+      // Start sending location updates every 5 seconds
+      const interval = setInterval(() => {
+        navigator.geolocation.getCurrentPosition((position) => {
+          const { latitude, longitude } = position.coords;
+          socket.emit('message_to_dispatcher', {
+            sender: formData.name || 'Anonymous',
+            latitude,
+            longitude
           });
-        }, 5000);
+          console.log({
+            sender: formData.name || 'Anonymous',
+            latitude,
+            longitude
+          });
+        });
+      }, 5000);
 
-        // Stop sending when the modal is closed
-        setShowModal(false);
-        return () => clearInterval(interval);
-      }
-    };
+      // Stop sending when the modal is closed
+      setShowModal(false);
+      return () => clearInterval(interval);
+    }
+  };
 
   const resetForm = () => {
     setFormData({
@@ -167,12 +166,12 @@ function EmergencyAssistance() {
   return (
     <div className="emergency-section">
       <h2>Emergency Assistance</h2>
-      
+
       <div className="emergency-info">
         <p className="emergency-notice">
           If this is a life-threatening emergency, immediately call 911 directly.
         </p>
-        
+
         <div className="emergency-instructions">
           <h3>Important Instructions:</h3>
           <ol>
@@ -184,7 +183,7 @@ function EmergencyAssistance() {
         </div>
 
         <div className="emergency-actions">
-          <button 
+          <button
             className="emergency-button"
             onClick={() => setShowModal(true)}
           >
@@ -193,6 +192,7 @@ function EmergencyAssistance() {
         </div>
       </div>
 
+      {/* Modal for entering emergency details */}
       {showModal && (
         <div className="modal-overlay">
           <div className="modal-content">
@@ -200,14 +200,14 @@ function EmergencyAssistance() {
             <form onSubmit={handleSubmit}>
               <div className="form-group">
                 <label>Type of Emergency:</label>
-                <select 
+                <select
                   name="emergencyType"
                   value={formData.emergencyType}
                   onChange={handleInputChange}
                   required
                 >
                   <option value="">Select Emergency Type</option>
-                  {emergencyTypes.map(type => (
+                  {['Medical Emergency', 'Fire', 'Police Emergency', 'Traffic Accident', 'Natural Disaster', 'Other'].map(type => (
                     <option key={type} value={type}>{type}</option>
                   ))}
                 </select>
@@ -259,14 +259,14 @@ function EmergencyAssistance() {
               </div>
 
               <div className="modal-actions">
-                <button 
-                  type="button" 
+                <button
+                  type="button"
                   onClick={() => setShowModal(false)}
                   className="cancel-button"
                 >
                   Cancel
                 </button>
-                <button 
+                <button
                   type="submit"
                   className="submit-button"
                   disabled={isRequesting}
@@ -278,8 +278,14 @@ function EmergencyAssistance() {
           </div>
         </div>
       )}
+
+      {/* Display the streamKey for debugging if you want */}
+      <p>{streamKey}</p>
+
+      {/* Conditionally render StartStream once we have a streamKey */}
+      {showStartStream && <StartStream streamKey={streamKey} />}
     </div>
   );
 }
 
-export default EmergencyAssistance; 
+export default EmergencyAssistance;

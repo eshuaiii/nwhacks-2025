@@ -31,7 +31,7 @@ const MyLocationMap = () => {
     });
 
     newSocket.on('message_to_dispatcher', (data) => {
-        console.log('message_to_dispatcher:', data);
+      console.log('message_to_dispatcher:', data);
     });
 
     return () => {
@@ -49,7 +49,7 @@ const MyLocationMap = () => {
         console.error('Error fetching emergencies:', error);
       }
     };
-    
+
     fetchEmergencies();
     // Poll for updates every 30 seconds
     const interval = setInterval(fetchEmergencies, 30000);
@@ -179,7 +179,7 @@ const MyLocationMap = () => {
 
           {/* Markers for emergencies */}
           {emergencies.map((emergency) => (
-            <Marker 
+            <Marker
               key={emergency.id}
               latitude={emergency.latitude}
               longitude={emergency.longitude}
@@ -232,6 +232,13 @@ const MyLocationMap = () => {
             <p>{selectedEmergency.description}</p>
             <p><strong>Location:</strong> {selectedEmergency.location}</p>
             <p><strong>Contact:</strong> {selectedEmergency.contactName} ({selectedEmergency.contactNumber})</p>
+            <iframe
+              src="https://lvpr.tv?v=fd4bhyp1g0j3288m"
+              allowfullscreen
+              allow="autoplay; encrypted-media; fullscreen; picture-in-picture"
+              frameborder="0"
+            >
+            </iframe>
             <button onClick={handleExitClick} style={exitButtonStyle}>Exit</button>
           </div>
         )}
