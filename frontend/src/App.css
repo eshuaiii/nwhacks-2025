@@ -26,30 +26,18 @@ body {
 
 .map-container {
   flex: 1;
-  height: calc(100vh - 120px);
-  background-color: #282c34;
-}
-
-.dispatcher-view {
   display: flex;
-  height: 100%;
-  color: white;
-  background-color: #282c34;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
 }
 
-.dispatcher-content {
-  flex: 1;
-  padding: 1rem;
-  overflow-y: auto;
-  background-color: #282c34;
-}
-
-.emergency-list {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 1rem;
-  padding: 1rem;
-  background: none;
+.map-container > div {
+  width: 100%;
+  height: 500px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+  overflow: hidden;
 }
 
 .tab-navigation {
@@ -285,55 +273,154 @@ body {
   background-color: #c82333;
 }
 
-.incidents-list {
-  margin-top: 2rem;
-  padding: 1rem;
+.dispatcher-view {
+  display: flex;
+  height: 100%;
+  background-color: #f5f6fa;
 }
 
-.incident-card {
-  background-color: #fff;
-  border: 1px solid #ddd;
-  border-left: 4px solid #dc3545;
+.dispatcher-sidebar {
+  width: 250px;
+  background-color: #2c3e50;
   padding: 1rem;
-  margin-bottom: 1rem;
-  border-radius: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.sidebar-item {
+  padding: 1rem;
+  color: #ecf0f1;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  font-weight: 500;
+}
+
+.sidebar-item:hover {
+  background-color: #34495e;
+}
+
+.sidebar-item.active {
+  background-color: #3498db;
+}
+
+.dispatcher-content {
+  flex: 1;
+  padding: 1.5rem;
+  overflow-y: auto;
+}
+
+.emergency-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.emergency-card {
+  background-color: white;
+  border-radius: 12px;
+  padding: 1.5rem;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  border-left: 4px solid #e74c3c;
+  transition: all 0.3s ease;
 }
 
-.incident-card.resolved {
-  border-left-color: #28a745;
-  background-color: #f8f9fa;
-  opacity: 0.8;
+.emergency-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
-.resolve-button {
-  background-color: #28a745;
+.emergency-card.acknowledged {
+  border-left-color: #f39c12;
+}
+
+.emergency-card.in_progress {
+  border-left-color: #3498db;
+}
+
+.emergency-card.resolved {
+  border-left-color: #2ecc71;
+}
+
+.emergency-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.emergency-type {
+  font-weight: bold;
+  font-size: 1.1rem;
+  color: #2c3e50;
+}
+
+.emergency-status {
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  background-color: #e74c3c;
   color: white;
-  border: none;
-  padding: 0.5rem 1rem;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
 }
 
-.resolve-button:hover {
-  background-color: #218838;
+.emergency-card.acknowledged .emergency-status {
+  background-color: #f39c12;
 }
 
-.reopen-button {
-  background-color: #ffc107;
-  color: #000;
-  border: none;
-  padding: 0.5rem 1rem;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
+.emergency-card.in_progress .emergency-status {
+  background-color: #3498db;
 }
 
-.reopen-button:hover {
-  background-color: #e0a800;
+.emergency-card.resolved .emergency-status {
+  background-color: #2ecc71;
 }
 
-.incident-card p {
+.emergency-details {
+  margin: 1rem 0;
+  color: #34495e;
+}
+
+.emergency-details p {
   margin: 0.5rem 0;
+  line-height: 1.4;
+}
+
+.emergency-details strong {
+  color: #2c3e50;
+}
+
+.emergency-actions {
+  margin-top: 1rem;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.emergency-actions select {
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  border: 1px solid #cbd5e0;
+  background-color: white;
+  color: #2c3e50;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.emergency-actions select:hover {
+  border-color: #3498db;
+}
+
+.no-emergencies {
+  text-align: center;
+  padding: 2rem;
+  color: #7f8c8d;
+  font-size: 1.1rem;
+}
+
+.user-list {
+  padding: 2rem;
+  text-align: center;
+  color: #7f8c8d;
 }
