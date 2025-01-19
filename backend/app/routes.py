@@ -1,4 +1,6 @@
+from flask import render_template
+
 def register_routes(app):
-    @app.route("/health", methods=["GET"])
-    def health_check():
-        return {"status": "ok"}, 200
+    @app.route("/")
+    def index():
+        return render_template('testing.html')

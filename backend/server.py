@@ -51,11 +51,6 @@ socketio = SocketIO(flask_app, cors_allowed_origins=["http://localhost:3000", "h
 from routes import register_routes
 register_routes(flask_app)
 
-# Combine Flask and FastAPI using DispatcherMiddleware
-flask_app.wsgi_app = DispatcherMiddleware(flask_app.wsgi_app, {
-    "/fastapi": WSGIMiddleware(fastapi_app),
-})
-
 # WebSocket event handlers
 @socketio.on('connect')
 def handle_connect():
