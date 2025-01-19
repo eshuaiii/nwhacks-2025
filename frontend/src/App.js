@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import MapboxMap from './components/maps';
 import EmergencyAssistance from './components/EmergencyAssistance';
+import StartStream from './components/StartStream';
 import './App.css';
 
 function App() {
@@ -10,35 +11,41 @@ function App() {
     <div className="app-container">
       <header className="app-header">
         <div className='app-top'>
-          <img 
+          <img
             src="/group1.svg" // Make sure the logo is placed in the public directory or adjust the path accordingly
             alt="Emergency Dispatch Logo"
             className="app-logo" // Optional: add a CSS class for styling
           />
         </div>
         <nav className="tab-navigation">
-          <div 
+          <div
             className={`tab-item ${activeTab === 'dispatches' ? 'active' : ''}`}
             onClick={() => setActiveTab('dispatches')}
           >
             Dispatcher View
           </div>
-          <div 
+          <div
             className={`tab-item ${activeTab === 'user' ? 'active' : ''}`}
             onClick={() => setActiveTab('user')}
           >
             Request Emergency
           </div>
+          <div
+            className={`tab-item ${activeTab === 'startStream' ? 'active' : ''}`}
+            onClick={() => setActiveTab('startStream')}
+          >
+            Start Stream in Browser
+          </div>
         </nav>
       </header>
       <main className="main-container">
-        {activeTab === 'dispatches' ? (
+        {activeTab === 'dispatches' && (
           <div className="dispatcher-container">
             <MapboxMap />
           </div>
-        ) : (
-          <EmergencyAssistance />
         )}
+        {activeTab === 'user' && <EmergencyAssistance />}
+        {activeTab === 'startStream' && <StartStream />}
       </main>
     </div>
   );
