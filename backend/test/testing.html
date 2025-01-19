@@ -13,7 +13,12 @@
         <option value="client">Client</option>
         <option value="dispatcher">Dispatcher</option>
     </select>
-    <button id="sendMessageButton" onclick="sendLocation()">Send Location</button>
+    <div id="clientNameContainer" style="display: none;">
+        <label for="clientName">Enter your name:</label>
+        <input type="text" id="clientName" />
+    </div>
+    <button id="startSendingButton" onclick="startSendingLocation()">Start Sending Location</button>
+    <button id="stopSendingButton" onclick="stopSendingLocation()" style="display: none;">Stop Sending Location</button>
 
     <div id="messages" style="margin-top: 20px;">
         <h2>Recent Messages</h2>
@@ -22,6 +27,7 @@
 
     <script>
         const socket = io("http://127.0.0.1:3000");
+        let sendLocationInterval;
 
         socket.on('connect', () => {
             console.log('Connected to server');
@@ -44,17 +50,24 @@
 
         function sendMessage(position) {
             const role = document.getElementById('role').value;
+            const clientName = document.getElementById('clientName').value || 'Anonymous';
             const message = `Latitude: ${position.coords.latitude}, Longitude: ${position.coords.longitude}`;
-            socket.emit('message_to_dispatcher', { sender: role, message: message });
+            socket.emit('message_to_dispatcher', { sender: clientName, message: message });
         }
 
         function toggleSendMessageButton() {
             const role = document.getElementById('role').value;
-            const sendMessageButton = document.getElementById('sendMessageButton');
+            const startSendingButton = document.getElementById('startSendingButton');
+            const stopSendingButton = document.getElementById('stopSendingButton');
+            const clientNameContainer = document.getElementById('clientNameContainer');
             if (role === 'dispatcher') {
-                sendMessageButton.style.display = 'none';
+                startSendingButton.style.display = 'none';
+                stopSendingButton.style.display = 'none';
+                clientNameContainer.style.display = 'none';
             } else {
-                sendMessageButton.style.display = 'block';
+                startSendingButton.style.display = 'block';
+                stopSendingButton.style.display = sendLocationInterval ? 'block' : 'none';
+                clientNameContainer.style.display = 'block';
             }
         }
 
@@ -64,6 +77,18 @@
             } else {
                 alert("Geolocation is not supported by this browser.");
             }
+        }
+
+        function startSendingLocation() {
+            sendLocation();
+            sendLocationInterval = setInterval(sendLocation, 5000); // Send location every 5 seconds
+            document.getElementById('stopSendingButton').style.display = 'block';
+        }
+
+        function stopSendingLocation() {
+            clearInterval(sendLocationInterval);
+            sendLocationInterval = null;
+            document.getElementById('stopSendingButton').style.display = 'none';
         }
 
         // Initial check to set the button visibility on page load
