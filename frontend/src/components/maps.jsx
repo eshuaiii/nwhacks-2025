@@ -285,6 +285,7 @@ const panelStyle = {
   boxShadow: "0 4px 8px rgba(0,0,0,0.1)",
   width: "300px",
   color: "white",
+  marginLeft: "10px",
 };
 
 
