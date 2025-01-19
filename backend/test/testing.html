@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>WebSocket Test</title>
+    <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
+</head>
+
+<body>
+    <h1>WebSocket Test</h1>
+    <label for="role">Select Role:</label>
+    <select id="role" onchange="toggleSendMessageButton()">
+        <option value="client">Client</option>
+        <option value="dispatcher">Dispatcher</option>
+    </select>
+    <button id="sendMessageButton" onclick="sendLocation()">Send Location</button>
+
+    <div id="messages" style="margin-top: 20px;">
+        <h2>Recent Messages</h2>
+        <ul id="messagesList"></ul>
+    </div>
+
+    <script>
+        const socket = io("http://127.0.0.1:3000");
+
+        socket.on('connect', () => {
+            console.log('Connected to server');
+        });
+
+        socket.on('disconnect', () => {
+            console.log('Disconnected from server');
+        });
+
+        socket.on('message_from_client', (data) => {
+            console.log('Message from client:', data);
+            const role = document.getElementById('role').value;
+            if (role === 'dispatcher') {
+                const messagesList = document.getElementById('messagesList');
+                const messageItem = document.createElement('li');
+                messageItem.textContent = `From ${data.sender}: ${data.message}`;
+                messagesList.appendChild(messageItem);
+            }
+        });
+
+        function sendMessage(position) {
+            const role = document.getElementById('role').value;
+            const message = `Latitude: ${position.coords.latitude}, Longitude: ${position.coords.longitude}`;
+            socket.emit('message_to_dispatcher', { sender: role, message: message });
+        }
+
+        function toggleSendMessageButton() {
+            const role = document.getElementById('role').value;
+            const sendMessageButton = document.getElementById('sendMessageButton');
+            if (role === 'dispatcher') {
+                sendMessageButton.style.display = 'none';
+            } else {
+                sendMessageButton.style.display = 'block';
+            }
+        }
+
+        function sendLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(sendMessage);
+            } else {
+                alert("Geolocation is not supported by this browser.");
+            }
+        }
+
+        // Initial check to set the button visibility on page load
+        toggleSendMessageButton();
+    </script>
+</body>
+
+</html>
