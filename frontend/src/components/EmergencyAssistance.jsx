@@ -17,6 +17,7 @@ function EmergencyAssistance() {
   });
   const [showStartStream, setShowStartStream] = useState(false);
   const [streamKey, setStreamKey] = useState(''); // Use React state for the streamKey
+  const [callEnded, setCallEnded] = useState(false); // State for call ended message
 
   // Use a ref to always have access to the latest uuid
   const uuidRef = useRef(null);
@@ -232,11 +233,36 @@ function EmergencyAssistance() {
     });
   };
 
+  // Check if the uuid is still present in the database
+  useEffect(() => {
+    if (showStartStream && uuid) {
+      const intervalId = setInterval(async () => {
+        try {
+          const response = await fetch(`http://127.0.0.1:3001/api/emergency/${uuid}`);
+          console.log(response)
+          if (response.status === 404) {
+            setCallEnded(true);
+            setShowStartStream(false);
+          }
+        } catch (error) {
+          console.error('Error checking emergency status:', error);
+        }
+      }, 30000); // Check every 5 seconds
+
+      return () => clearInterval(intervalId);
+    }
+  }, [showStartStream, uuid]);
+
   return (
     <div className="emergency-section">
-      {showStartStream ? (
+      {callEnded ? (
+        <p>Call has been ended by dispatcher</p>
+      ) : showStartStream ? (
         <>
-          <p>Hello</p>
+          <p>Help is on the way. Do not leave this page.
+
+            Dispatchers are able to view your stream.
+          </p>
           <StartStream streamKey={streamKey} />
         </>
       ) : (
