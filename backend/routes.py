@@ -100,6 +100,24 @@ def register_routes(app, socketio):
             print(f"Error in update_emergency: {str(e)}")
             db.session.rollback()
             return jsonify({'error': str(e)}), 500
+        
+    @app.route('/api/emergency/<int:emergency_id>', methods=['GET'])
+    def get_emergency(emergency_id):
+        try:
+            print(f"Received get request for emergency {emergency_id}")
+            
+            # Retrieve the emergency record
+            emergency = Emergency.query.get(emergency_id)
+            if not emergency:
+                return jsonify({'error': 'Emergency not found'}), 404
+            
+            # Return the emergency details (assuming it has a `to_dict()` method or you can create a dictionary)
+            return jsonify(emergency.to_dict()), 200
+
+        except Exception as e:
+            print(f"Error in get_emergency: {str(e)}")
+            return jsonify({'error': str(e)}), 500
+
 
     @app.route('/api/emergency/<int:emergency_id>', methods=['DELETE'])
     def delete_emergency(emergency_id):
