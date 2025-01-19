@@ -2,104 +2,104 @@ from flask import jsonify, request
 from datetime import datetime
 from models import db, Emergency
 
-def register_routes(app):
+def register_routes(app, socketio):
+    # HTTP Routes
     @app.route("/")
     def index():
         return "Emergency Dispatch API"
 
-    @app.route('/api/incidents', methods=['GET'])
-    def get_incidents():
-        incidents = Emergency.query.order_by(Emergency.timestamp.desc()).all()
-        return jsonify([{
-            'id': incident.id,
-            'sender': incident.sender,
-            'message': incident.message,
-            'timestamp': incident.timestamp.isoformat(),
-            'location': incident.location,
-            'is_active': incident.is_active,
-            'contact': incident.contact
-        } for incident in incidents])
+    @app.route('/api/emergencies', methods=['GET'])
+    def get_emergencies():
+        try:
+            status = request.args.get('status')
+            if status:
+                emergencies = Emergency.query.filter_by(status=status).order_by(Emergency.timestamp.desc()).all()
+            else:
+                emergencies = Emergency.query.order_by(Emergency.timestamp.desc()).all()
+            return jsonify([emergency.to_dict() for emergency in emergencies]), 200
+        except Exception as e:
+            return jsonify({'error': str(e)}), 500
 
-    @app.route('/api/incidents/<int:incident_id>', methods=['GET'])
-    def get_incident(incident_id):
-        incident = Emergency.query.get_or_404(incident_id)
-        return jsonify({
-            'id': incident.id,
-            'sender': incident.sender,
-            'message': incident.message,
-            'timestamp': incident.timestamp.isoformat(),
-            'location': incident.location,
-            'is_active': incident.is_active,
-            'contact': incident.contact
-        })
+    @app.route('/api/emergency', methods=['POST'])
+    def create_emergency():
+        try:
+            data = request.json
+            
+            emergency = Emergency(
+                emergency_type=data['emergencyType'],
+                description=data['description'],
+                location=data['location'],
+                contact_name=data['contactName'],
+                contact_number=data['contactNumber'],
+                latitude=data.get('latitude'),
+                longitude=data.get('longitude'),
+                status='NEW',
+                timestamp=datetime.utcnow()
+            )
+            
+            db.session.add(emergency)
+            db.session.commit()
+            
+            # Emit socket event for real-time updates
+            socketio.emit('new_emergency', emergency.to_dict())
+            
+            return jsonify(emergency.to_dict()), 201
+            
+        except Exception as e:
+            db.session.rollback()
+            return jsonify({'error': str(e)}), 500
 
-    @app.route('/api/incidents', methods=['POST'])
-    def create_incident():
-        data = request.get_json()
-        
-        new_incident = Emergency(
-            sender=data['sender'],
-            message=data['message'],
-            location=data.get('location'),
-            timestamp=datetime.utcnow(),
-            is_active=True,
-            contact=data.get('contact')
-        )
-        
-        db.session.add(new_incident)
-        db.session.commit()
-        
-        return jsonify({
-            'id': new_incident.id,
-            'sender': new_incident.sender,
-            'message': new_incident.message,
-            'timestamp': new_incident.timestamp.isoformat(),
-            'location': new_incident.location,
-            'is_active': new_incident.is_active,
-            'contact': new_incident.contact
-        }), 201
+    @app.route('/api/emergency/<int:emergency_id>/status', methods=['PUT'])
+    def update_emergency_status(emergency_id):
+        try:
+            emergency = Emergency.query.get_or_404(emergency_id)
+            data = request.json
+            
+            if 'status' not in data:
+                return jsonify({'error': 'Status is required'}), 400
+                
+            emergency.status = data['status']
+            db.session.commit()
+            
+            # Emit socket event for real-time updates
+            socketio.emit('emergency_updated', emergency.to_dict())
+            
+            return jsonify(emergency.to_dict()), 200
+        except Exception as e:
+            db.session.rollback()
+            return jsonify({'error': str(e)}), 500
 
-    @app.route('/api/incidents/<int:incident_id>', methods=['PUT'])
-    def update_incident(incident_id):
-        incident = Emergency.query.get_or_404(incident_id)
-        data = request.get_json()
-        
-        incident.sender = data.get('sender', incident.sender)
-        incident.message = data.get('message', incident.message)
-        incident.location = data.get('location', incident.location)
-        incident.contact = data.get('contact', incident.contact)
-        
-        db.session.commit()
-        
-        return jsonify({
-            'id': incident.id,
-            'sender': incident.sender,
-            'message': incident.message,
-            'timestamp': incident.timestamp.isoformat(),
-            'location': incident.location,
-            'is_active': incident.is_active,
-            'contact': incident.contact
-        })
+    # WebSocket Events
+    @socketio.on('connect')
+    def handle_connect():
+        print("Client connected")
 
-    @app.route('/api/incidents/<int:incident_id>/toggle', methods=['PUT'])
-    def toggle_incident_status(incident_id):
-        incident = Emergency.query.get_or_404(incident_id)
-        incident.is_active = not incident.is_active
-        db.session.commit()
-        
-        return jsonify({
-            'id': incident.id,
-            'sender': incident.sender,
-            'message': incident.message,
-            'timestamp': incident.timestamp.isoformat(),
-            'location': incident.location,
-            'is_active': incident.is_active,
-            'contact': incident.contact
-        })
+    @socketio.on('disconnect')
+    def handle_disconnect():
+        print("Client disconnected")
 
-    @app.route('/api/incidents/<int:incident_id>', methods=['DELETE'])
-    def delete_incident(incident_id):
-        incident = Emergency.query.get_or_404(incident_id)
-        db.session.delete(incident)
-        db.session.commit()
-        return '', 204 
+    @socketio.on('message_to_dispatcher')
+    def handle_message_to_dispatcher(data):
+        try:
+            # Create emergency from socket message
+            emergency = Emergency(
+                emergency_type=data['emergencyType'],
+                description=data['description'],
+                location=data['location'],
+                contact_name=data['contactName'],
+                contact_number=data['contactNumber'],
+                latitude=data.get('latitude'),
+                longitude=data.get('longitude'),
+                status='NEW',
+                timestamp=datetime.utcnow()
+            )
+            
+            db.session.add(emergency)
+            db.session.commit()
+            
+            # Broadcast to all connected clients
+            socketio.emit('new_emergency', emergency.to_dict())
+            
+        except Exception as e:
+            db.session.rollback()
+            print(f"Error handling socket message: {str(e)}")
