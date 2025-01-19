@@ -45,5 +45,5 @@ def handle_message_to_dispatcher(data):
 
 if __name__ == "__main__":
     print("Starting Flask server...")
-    socketio.run(flask_app, host="127.0.0.1", port=3000)
+    socketio.run(flask_app, host="127.0.0.1", port=3001)
     print("Server started!")
