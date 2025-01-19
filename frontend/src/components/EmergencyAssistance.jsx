@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import StartStream from './StartStream';
 import { createStream } from './StreamCreator';
+import { CookiesProvider, useCookies } from 'react-cookie';
 
 function EmergencyAssistance() {
+  const [cookies, setCookie] = useCookies(['uuid', "streamKey"]);
   const [isRequesting, setIsRequesting] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [uuid, setUuid] = useState(null);
@@ -27,6 +29,29 @@ function EmergencyAssistance() {
     uuidRef.current = uuid;
     console.log('UUID updated in ref:', uuid);
   }, [uuid]);
+
+  useEffect(() => {
+    const existingUuid = cookies.uuid;
+    if (existingUuid) {
+      console.log('Found UUID in cookies:', existingUuid);
+      fetchStreamKey(existingUuid);
+    }
+  }, [cookies]);
+
+  const fetchStreamKey = async (uuid) => {
+    try {
+      const response = await fetch(`http://127.0.0.1:3001/api/emergency/${uuid}`);
+      if (response.ok) {
+        const streamKey = cookies.streamKey
+        console.log('Stream key retrieved:', streamKey);
+        setStreamKey(streamKey);
+        setShowStartStream(true);
+      }
+      
+    } catch (error) {
+      console.log('Error fetching stream key:', error);
+    }
+  };
 
   const emergencyTypes = [
     'Medical Emergency',
@@ -198,6 +223,7 @@ function EmergencyAssistance() {
       // Safely capture the new UUID in a local variable
       const newUuid = data.id;
       setUuid(newUuid);
+      setCookie('uuid', newUuid, { path: '/'});
 
       if (formData.shareLocation) {
         // Slight delay to ensure the ref is updated
@@ -211,6 +237,7 @@ function EmergencyAssistance() {
       const key = await createStream(newUuid);
       console.log('EmergencyAssistance then:', key);
       setStreamKey(key);
+      setCookie('streamKey', key)
 
       // Finally, show the StartStream component
       setShowStartStream(true);
@@ -259,7 +286,7 @@ function EmergencyAssistance() {
         <p>Call has been ended by dispatcher</p>
       ) : showStartStream ? (
         <>
-          <p>Help is on the way. Do not leave this page.
+          <p>Help is on the way. Do not leave this page.<br></br>
 
             Dispatchers are able to view your stream.
           </p>
