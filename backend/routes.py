@@ -82,6 +82,8 @@ def register_routes(app, socketio):
                     emergency.contact_number = data['contactNumber']
                 if 'status' in data:
                     emergency.status = data['status']
+                if 'stream_id' in data:
+                    emergency.stream_id = data['stream_id']
 
             try:
                 db.session.commit()

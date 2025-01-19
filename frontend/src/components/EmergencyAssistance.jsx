@@ -195,13 +195,13 @@ function EmergencyAssistance() {
       setUuid(data.id);
       console.log(data)
 
-      // if (formData.shareLocation) {
-      //     // Wait a moment for the uuid to be set in the ref
-      //     setTimeout(async () => {
-      //       console.log('Starting location updates after emergency creation');
-      //       await startLocationUpdates();
-      //     }, 100);
-      //   }
+      if (formData.shareLocation) {
+        // Wait a moment for the uuid to be set in the ref
+        setTimeout(async () => {
+          console.log('Starting location updates after emergency creation');
+          await startLocationUpdates();
+        }, 100);
+      }
 
       // Now create the stream, capturing its key
       const key = await createStream(uuid);
