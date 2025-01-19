@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from "react";
 import Map, { Marker, Source, Layer } from "react-map-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
+import axios from 'axios';
+
 import io from 'socket.io-client';
+
 
 const MyLocationMap = () => {
   const mapboxAccessToken = process.env.REACT_APP_MAPBOX_API_KEY;
@@ -11,11 +14,32 @@ const MyLocationMap = () => {
     zoom: 14,
   });
   const [userLocation, setUserLocation] = useState(null);
-  const [selectedUser, setSelectedUser] = useState(null);  // Track selected user
+  const [selectedEmergency, setSelectedEmergency] = useState(null);
   const [route, setRoute] = useState(null);  // Route data
+
+  const [emergencies, setEmergencies] = useState([]);
+
+  // Fetch emergencies
+  useEffect(() => {
+    const fetchEmergencies = async () => {
+      try {
+        const response = await axios.get('http://localhost:3001/api/emergencies');
+        setEmergencies(response.data);
+      } catch (error) {
+        console.error('Error fetching emergencies:', error);
+      }
+    };
+    
+    fetchEmergencies();
+    // Poll for updates every 30 seconds
+    const interval = setInterval(fetchEmergencies, 30000);
+    return () => clearInterval(interval);
+  }, []);
+
   const [users, setUsers] = useState([]);  // Track users
 
   let socket;
+
 
   // Get user's location
   useEffect(() => {
@@ -112,42 +136,48 @@ const MyLocationMap = () => {
   };
 
   // Handle user selection
-  const handleUserClick = (user) => {
-    setSelectedUser(user);
+  const handleEmergencyClick = (emergency) => {
+    setSelectedEmergency(emergency);
     if (userLocation) {
-      fetchRoute(userLocation.latitude, userLocation.longitude, user.latitude, user.longitude);
+      fetchRoute(
+        userLocation.latitude,
+        userLocation.longitude,
+        emergency.latitude,
+        emergency.longitude
+      );
       setViewport({
         ...viewport,
-        latitude: user.latitude,
-        longitude: user.longitude
+        latitude: emergency.latitude,
+        longitude: emergency.longitude
       });
     }
   };
 
   // Handle exit (deselect user)
   const handleExitClick = () => {
-    setSelectedUser(null);
-    setRoute(null);  // Optionally clear the route
+    setSelectedEmergency(null);
+    setRoute(null);
   };
 
   return (
     <div style={{ display: "flex", height: "80vh", width: "90vw" }}>  {/* Adjusting width and height */}
       <div style={{ width: "250px", padding: "20px", overflowY: "scroll", flex: "0 0 250px" }}>
-        <h3>User List</h3>
-        {users.map((user) => (
+        <h3>Emergency List</h3>
+        {emergencies.map((emergency) => (
           <div
-            key={user.id}
-            onClick={() => handleUserClick(user)}
+            key={emergency.id}
+            onClick={() => handleEmergencyClick(emergency)}
             style={{
               padding: "10px",
               margin: "5px 0",
               cursor: "pointer",
-              backgroundColor: selectedUser?.id === user.id ? "#cce7ff" : "#f0f0f0",
+              backgroundColor: selectedEmergency?.id === emergency.id ? "#cce7ff" : "#f0f0f0",
               borderRadius: "4px",
               boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
             }}
           >
-            {user.name}
+            <div>{emergency.emergencyType}</div>
+            <small style={{ color: '#666' }}>{emergency.location}</small>
           </div>
         ))}
       </div>
@@ -160,12 +190,12 @@ const MyLocationMap = () => {
           mapStyle="mapbox://styles/mapbox/streets-v11"
           style={{ width: "100%", height: "100%" }}
         >
-          {/* Marker for the user's location */}
+          {/* Marker for dispatcher's location */}
           {userLocation && (
             <Marker latitude={userLocation.latitude} longitude={userLocation.longitude}>
               <div
                 style={{
-                  backgroundColor: "red",
+                  backgroundColor: "blue",
                   borderRadius: "50%",
                   width: "20px",
                   height: "20px",
@@ -175,13 +205,17 @@ const MyLocationMap = () => {
             </Marker>
           )}
 
-          {/* Markers for other users */}
-          {users.map((user) => (
-            <Marker key={user.id} latitude={user.latitude} longitude={user.longitude}>
+          {/* Markers for emergencies */}
+          {emergencies.map((emergency) => (
+            <Marker 
+              key={emergency.id}
+              latitude={emergency.latitude}
+              longitude={emergency.longitude}
+            >
               <div
-                onClick={() => handleUserClick(user)}  // OnClick for user selection
+                onClick={() => handleEmergencyClick(emergency)}
                 style={{
-                  backgroundColor: "blue",
+                  backgroundColor: "red",
                   borderRadius: "50%",
                   width: "20px",
                   height: "20px",
@@ -220,9 +254,12 @@ const MyLocationMap = () => {
         </div>
 
         {/* Navigation Panel */}
-        {selectedUser && (
+        {selectedEmergency && (
           <div style={panelStyle}>
-            <h3>Navigation to {selectedUser.name}</h3>
+            <h3>{selectedEmergency.emergencyType}</h3>
+            <p>{selectedEmergency.description}</p>
+            <p><strong>Location:</strong> {selectedEmergency.location}</p>
+            <p><strong>Contact:</strong> {selectedEmergency.contactName} ({selectedEmergency.contactNumber})</p>
             <button onClick={handleExitClick} style={exitButtonStyle}>Exit</button>
           </div>
         )}
