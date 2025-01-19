@@ -30,5 +30,5 @@ class Emergency(db.Model):
             'longitude': self.longitude,
             'status': self.status,
             'timestamp': self.timestamp.isoformat(),
-            'stream_id': self.stream
+            'stream_id': self.stream_id
         } 
