@@ -128,27 +128,6 @@ const MyLocationMap = () => {
     setRoute(null);
   };
 
-  // Function to handle the deletion of the emergency
-  const handleDeleteEmergency = async () => {
-    if (!selectedEmergency) return;
-
-    try {
-      const response = await fetch(`http://127.0.0.1:3001/api/emergency/${selectedEmergency.id}`, {
-        method: 'DELETE',
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to delete emergency.');
-      }
-
-      alert('Emergency has been deleted.');
-      setSelectedEmergency(null); // Reset the selected emergency
-      setEmergencies(emergencies.filter(e => e.id !== selectedEmergency.id)); // Remove the deleted emergency from the list
-    } catch (error) {
-      console.error('Error deleting emergency:', error);
-      alert('Failed to delete emergency. Please try again.');
-    }
-  };
 
   return (
     <div style={{ display: "flex", height: "80vh", width: "90vw" }}>  {/* Adjusting width and height */}
