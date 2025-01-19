@@ -115,6 +115,28 @@ const MyLocationMap = () => {
     setRoute(null);
   };
 
+  // Function to handle the deletion of the emergency
+  const handleDeleteEmergency = async () => {
+    if (!selectedEmergency) return;
+
+    try {
+      const response = await fetch(`http://127.0.0.1:3001/api/emergency/${selectedEmergency.id}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to delete emergency.');
+      }
+
+      alert('Emergency has been deleted.');
+      setSelectedEmergency(null); // Reset the selected emergency
+      setEmergencies(emergencies.filter(e => e.id !== selectedEmergency.id)); // Remove the deleted emergency from the list
+    } catch (error) {
+      console.error('Error deleting emergency:', error);
+      alert('Failed to delete emergency. Please try again.');
+    }
+  };
+
   return (
     <div style={{ display: "flex", height: "80vh", width: "90vw" }}>  {/* Adjusting width and height */}
       <div style={{ width: "250px", padding: "20px", overflowY: "scroll", flex: "0 0 250px" }}>
@@ -224,6 +246,7 @@ const MyLocationMap = () => {
             >
             </iframe>
             <button onClick={handleExitClick} style={exitButtonStyle}>Exit</button>
+            <button onClick={handleDeleteEmergency} style={deleteButtonStyle}>Delete Emergency</button>
           </div>
         )}
       </div>
@@ -248,6 +271,17 @@ const buttonStyle = {
 
 const exitButtonStyle = {
   backgroundColor: "#ff5c5c",
+  border: "none",
+  borderRadius: "4px",
+  padding: "8px 12px",
+  color: "white",
+  fontSize: "16px",
+  cursor: "pointer",
+  marginTop: "10px",
+};
+
+const deleteButtonStyle = {
+  backgroundColor: "#ff0000",
   border: "none",
   borderRadius: "4px",
   padding: "8px 12px",

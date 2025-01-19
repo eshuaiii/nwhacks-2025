@@ -34,9 +34,12 @@ body {
 
 
 .app-logo {
-  height: 40px; /* Adjust the height as needed */
-  width: auto; /* Maintain the aspect ratio */
-  vertical-align: middle; /* Align with text */
+  height: 40px;
+  /* Adjust the height as needed */
+  width: auto;
+  /* Maintain the aspect ratio */
+  vertical-align: middle;
+  /* Align with text */
 }
 
 .map-container {
@@ -50,7 +53,7 @@ body {
   z-index: 0;
 }
 
-.map-container > div {
+.map-container>div {
   width: 100%;
   height: 500px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
@@ -112,7 +115,7 @@ body {
   padding: 2rem;
   border: 10%;
   max-width: calc(100% - 48px);
-  width: 800px;
+  width: 75%;
   margin-right: auto;
   margin-left: auto;
   color: #000;
@@ -134,7 +137,7 @@ body {
 }
 
 .emergency-instructions {
-  margin-top: 3%; 
+  margin-top: 3%;
   margin-bottom: 2rem;
   padding: 1rem;
   background-color: #d5d6d8;
@@ -194,9 +197,17 @@ body {
 }
 
 @keyframes pulse {
-  0% { opacity: 1; }
-  50% { opacity: 0.6; }
-  100% { opacity: 1; }
+  0% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.6;
+  }
+
+  100% {
+    opacity: 1;
+  }
 }
 
 .modal-overlay {
