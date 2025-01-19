@@ -2,11 +2,10 @@ import React, { useState, useEffect } from "react";
 import Map, { Marker, Source, Layer } from "react-map-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 import axios from 'axios';
-
-import io from 'socket.io-client';
-
+import { io } from 'socket.io-client';  // Import socket.io-client
 
 const MyLocationMap = () => {
+  const [socket, setSocket] = useState(null);
   const mapboxAccessToken = process.env.REACT_APP_MAPBOX_API_KEY;
   const [viewport, setViewport] = useState({
     latitude: 37.7749,
@@ -16,10 +15,31 @@ const MyLocationMap = () => {
   const [userLocation, setUserLocation] = useState(null);
   const [selectedEmergency, setSelectedEmergency] = useState(null);
   const [route, setRoute] = useState(null);  // Route data
-
   const [emergencies, setEmergencies] = useState([]);
 
-  // Fetch emergencies
+  // Set up socket connection
+  useEffect(() => {
+    const newSocket = io("http://127.0.0.1:4287");
+    setSocket(newSocket);
+
+    newSocket.on('connect', () => {
+      console.log('Connected to server');
+    });
+
+    newSocket.on('disconnect', () => {
+      console.log('Disconnected from server');
+    });
+
+    newSocket.on('message_to_dispatcher', (data) => {
+        console.log('message_to_dispatcher:', data);
+    });
+
+    return () => {
+      newSocket.disconnect();
+    };
+  }, []);
+
+  // Fetch emergencies initially
   useEffect(() => {
     const fetchEmergencies = async () => {
       try {
@@ -36,14 +56,8 @@ const MyLocationMap = () => {
     return () => clearInterval(interval);
   }, []);
 
-  const [users, setUsers] = useState([]);  // Track users
-
-  let socket;
-
-
   // Get user's location
   useEffect(() => {
-    init();
     if ("geolocation" in navigator) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
@@ -63,52 +77,6 @@ const MyLocationMap = () => {
       console.error("Geolocation is not available in this browser.");
     }
   }, []);
-
-  function init() {
-    // TODO: FIX Socket on the FrontEnd
-    // socket = io("http://localhost:3001", {
-    //     transports: ['websocket'],
-    //     path: '/socket.io'
-    // });
-
-    // socket.on('connect', () => {
-    //     console.log('Connected to server');
-    // });
-
-    // socket.on('disconnect', () => {
-    //     console.log('Disconnected from server');
-    // });
-
-    // socket.on('message_from_client', (data) => {
-    //     updateUsers(data);
-    //     console.log('Message from client:', data);
-    // });
-}
-
-  const updateUsers = (newUser) => {
-    console.log(newUser);
-    if (newUser) {
-      setUsers((prevUsers) => {
-        // Check if the user with the same ID exists
-        const existingUserIndex = prevUsers.findIndex(user => user.id === newUser.id);
-
-        if (existingUserIndex >= 0) {
-          // If the user exists, update their latitude and longitude
-          const updatedUsers = [...prevUsers];
-          updatedUsers[existingUserIndex] = {
-            ...updatedUsers[existingUserIndex],
-            latitude: newUser.latitude,
-            longitude: newUser.longitude,
-          };
-          return updatedUsers;
-        } else {
-          // If the user does not exist, add the new user to the list
-          return [...prevUsers, newUser];
-        }
-      });
-    }
-  };
-
 
   // Fetch route data from Mapbox Directions API
   const fetchRoute = (startLat, startLon, endLat, endLon) => {
@@ -303,11 +271,10 @@ const panelStyle = {
   top: "20px",
   left: "20px",
   backgroundColor: "white",
-  padding: "10px",
+  padding: "20px",
   borderRadius: "8px",
-  boxShadow: "0 0 10px rgba(0, 0, 0, 0.2)",
-  zIndex: 1,
-  width: "250px",
+  boxShadow: "0 4px 8px rgba(0,0,0,0.1)",
+  width: "300px",
 };
 
 export default MyLocationMap;
