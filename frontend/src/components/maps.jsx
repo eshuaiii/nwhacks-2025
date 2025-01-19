@@ -22,15 +22,6 @@ const MyLocationMap = () => {
 
   // Fetch emergencies initially
   useEffect(() => {
-    const fetchEmergencies = async () => {
-      try {
-        const response = await axios.get('http://localhost:3001/api/emergencies');
-        console.log(response)
-        setEmergencies(response.data);
-      } catch (error) {
-        console.error('Error fetching emergencies:', error);
-      }
-    };
     fetchEmergencies();
     // Poll for updates every 30 seconds
     const interval = setInterval(fetchEmergencies, 30000);
@@ -70,6 +61,28 @@ const MyLocationMap = () => {
         setRoute(routeData);
       })
       .catch((error) => console.error("Error fetching route data:", error));
+  };
+
+  const fetchEmergencies = async () => {
+      try {
+        const response = await axios.get('http://localhost:3001/api/emergencies');
+        console.log(response)
+        setEmergencies(response.data);
+      } catch (error) {
+        console.error('Error fetching emergencies:', error);
+      }
+  };
+
+  const deleteEmergency = async (emergencyId) => {
+    try {
+      await axios.delete(`http://localhost:3001/api/emergency/${emergencyId}`);
+      setEmergencies((prev) => prev.filter((emergency) => emergency.id !== emergencyId));
+      setSelectedEmergency(null);
+      setRoute(null);
+      fetchEmergencies();
+    } catch (error) {
+      console.error("Error deleting emergency:", error);
+    }
   };
 
   // Handle zoom in
@@ -224,6 +237,10 @@ const MyLocationMap = () => {
             >
             </iframe>
             <button onClick={handleExitClick} style={exitButtonStyle}>Exit</button>
+            <button
+              onClick={() => deleteEmergency(selectedEmergency.id)}
+              style={exitButtonStyle}
+            >Delete Emergency</button>
           </div>
         )}
       </div>
@@ -255,6 +272,8 @@ const exitButtonStyle = {
   fontSize: "16px",
   cursor: "pointer",
   marginTop: "10px",
+  marginLeft: "10px",
+  marginRight: "10px"
 };
 
 const panelStyle = {
@@ -268,5 +287,6 @@ const panelStyle = {
   width: "300px",
   color: "white",
 };
+
 
 export default MyLocationMap;

@@ -41,10 +41,6 @@ def register_routes(app, socketio):
             
             db.session.add(emergency)
             db.session.commit()
-            
-            # Emit socket event for real-time updates
-            socketio.emit('new_emergency', emergency.to_dict())
-            
             return jsonify(emergency.to_dict()), 201
             
         except Exception as e:
@@ -97,14 +93,38 @@ def register_routes(app, socketio):
 
             result = emergency.to_dict()
             print(f"Returning: {result}")
-            
-            # Emit socket event for real-time updates
-            socketio.emit('updated_emergency', result)
 
             return jsonify(result), 200
 
         except Exception as e:
             print(f"Error in update_emergency: {str(e)}")
+            db.session.rollback()
+            return jsonify({'error': str(e)}), 500
+
+    @app.route('/api/emergency/<int:emergency_id>', methods=['DELETE'])
+    def delete_emergency(emergency_id):
+        try:
+            print(f"Received delete request for emergency {emergency_id}")
+            
+            # Retrieve the emergency record
+            emergency = Emergency.query.get(emergency_id)
+            if not emergency:
+                return jsonify({'error': 'Emergency not found'}), 404
+            
+            # Delete the emergency
+            db.session.delete(emergency)
+            try:
+                db.session.commit()
+                print(f"Successfully deleted emergency {emergency_id}")
+            except Exception as db_error:
+                print(f"Database error: {str(db_error)}")
+                db.session.rollback()
+                raise
+
+            return jsonify({'message': f'Emergency {emergency_id} deleted successfully'}), 200
+
+        except Exception as e:
+            print(f"Error in delete_emergency: {str(e)}")
             db.session.rollback()
             return jsonify({'error': str(e)}), 500
 

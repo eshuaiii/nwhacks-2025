@@ -30,12 +30,12 @@ function App() {
           >
             Request Emergency
           </div>
-          <div
+          {/* <div
             className={`tab-item ${activeTab === 'startStream' ? 'active' : ''}`}
             onClick={() => setActiveTab('startStream')}
           >
             Start Stream in Browser
-          </div>
+          </div> */}
         </nav>
       </header>
       <main className="main-container">
