@@ -191,24 +191,28 @@ function EmergencyAssistance() {
       alert('Emergency services have been notified. Stay calm, help is on the way.');
       setShowModal(false);
       resetForm();
+
       const data = await response.json();
-      setUuid(data.id);
-      console.log(data)
+      console.log(data);
+
+      // Safely capture the new UUID in a local variable
+      const newUuid = data.id;
+      setUuid(newUuid);
 
       if (formData.shareLocation) {
-        // Wait a moment for the uuid to be set in the ref
+        // Slight delay to ensure the ref is updated
         setTimeout(async () => {
           console.log('Starting location updates after emergency creation');
           await startLocationUpdates();
         }, 100);
       }
 
-      // Now create the stream, capturing its key
-      const key = await createStream(uuid);
+      // Use the local `newUuid` (guaranteed not null) to create the stream
+      const key = await createStream(newUuid);
       console.log('EmergencyAssistance then:', key);
       setStreamKey(key);
 
-      // Finally show the StartStream component
+      // Finally, show the StartStream component
       setShowStartStream(true);
     } catch (error) {
       console.error('Error creating emergency:', error);
@@ -217,6 +221,7 @@ function EmergencyAssistance() {
       setIsRequesting(false);
     }
   };
+
   const resetForm = () => {
     setFormData({
       emergencyType: '',
@@ -227,6 +232,7 @@ function EmergencyAssistance() {
       name: ''
     });
   };
+
   return (
     <div className="emergency-section">
       <h2>Emergency Assistance</h2>
@@ -350,8 +356,6 @@ function EmergencyAssistance() {
       {showStartStream && <StartStream streamKey={streamKey} />}
     </div>
   );
-};
-
-
+}
 
 export default EmergencyAssistance;

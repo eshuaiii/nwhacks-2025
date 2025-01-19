@@ -22,7 +22,7 @@ export async function createStream(currentUuid) {
                 "stream_id": response.stream.playbackId,
             })
         });
-        console.log(update);
+        console.log(`Stream update: ${update}`);
         return response.stream.streamKey;
     } catch (error) {
         console.error("Error creating stream:", error);

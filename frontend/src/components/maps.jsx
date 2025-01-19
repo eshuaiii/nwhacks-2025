@@ -233,7 +233,7 @@ const MyLocationMap = () => {
             <p><strong>Location:</strong> {selectedEmergency.location}</p>
             <p><strong>Contact:</strong> {selectedEmergency.contactName} ({selectedEmergency.contactNumber})</p>
             <iframe
-              src={`https://lvpr.tv?v=${streamID}`}
+              src={`https://lvpr.tv?v=${selectedEmergency.stream_id}`}
               allowfullscreen
               allow="autoplay; encrypted-media; fullscreen; picture-in-picture"
               frameborder="0"
