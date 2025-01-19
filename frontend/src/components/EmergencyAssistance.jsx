@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from 'react';
-import { io } from 'socket.io-client';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 
 function EmergencyAssistance() {
-  const [socket, setSocket] = useState(null);
   const [isRequesting, setIsRequesting] = useState(false);
   const [showModal, setShowModal] = useState(false);
+  const [uuid, setUuid] = useState(null);
+  const [locationInterval, setLocationInterval] = useState(null);
   const [formData, setFormData] = useState({
     emergencyType: '',
     description: '',
@@ -13,6 +13,15 @@ function EmergencyAssistance() {
     contactNumber: '',
     name: ''
   });
+
+  // Use a ref to always have access to the latest uuid
+  const uuidRef = useRef(null);
+  
+  // Keep the ref in sync with the state
+  useEffect(() => {
+    uuidRef.current = uuid;
+    console.log('UUID updated in ref:', uuid);
+  }, [uuid]);
 
   const emergencyTypes = [
     'Medical Emergency',
@@ -23,22 +32,101 @@ function EmergencyAssistance() {
     'Other'
   ];
 
-  useEffect(() => {
-    const newSocket = io("http://127.0.0.1:4287");
-    setSocket(newSocket);
-
-    newSocket.on('connect', () => {
-      console.log('Connected to server');
-    });
-
-    newSocket.on('disconnect', () => {
-      console.log('Disconnected from server');
-    });
-
-    return () => {
-      newSocket.disconnect();
+  const emitLocation = useCallback(async (coords) => {
+    const locationData = {
+      latitude: coords.latitude,
+      longitude: coords.longitude,
     };
-  }, []);
+    
+    // Use the ref instead of the state
+    const currentUuid = uuidRef.current;
+    
+    if (currentUuid) {
+      try {
+        console.log('Updating location for emergency:', currentUuid);
+        console.log('Location data:', locationData);
+        
+        const response = await fetch(`http://127.0.0.1:3001/api/emergency/${currentUuid}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(locationData),
+        });
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error('Server response:', errorText);
+          throw new Error('Failed to update location');
+        }
+
+        console.log('Location updated in the database:', locationData);
+      } catch (error) {
+        console.error('Error updating location in database:', error);
+        stopLocationUpdates();
+      }
+    } else {
+      console.log('No UUID available for location update');
+    }
+  }, []); // No need for uuid in dependencies anymore
+
+  const stopLocationUpdates = useCallback(() => {
+    console.log('Stopping location updates');
+    if (locationInterval) {
+      clearInterval(locationInterval);
+      setLocationInterval(null);
+    }
+  }, [locationInterval]);
+
+  const startLocationUpdates = useCallback(async () => {
+    console.log('Starting location updates');
+    try {
+      // Clear any existing interval first
+      if (locationInterval) {
+        clearInterval(locationInterval);
+      }
+
+      // Initial location update
+      const position = await getCurrentLocation();
+      await emitLocation(position.coords);
+
+      // Set up interval for periodic updates
+      const intervalId = setInterval(async () => {
+        try {
+          console.log('Interval update triggered');
+          const newPosition = await getCurrentLocation();
+          await emitLocation(newPosition.coords);
+        } catch (error) {
+          console.error('Error getting updated location:', error);
+        }
+      }, 5000);
+
+      setLocationInterval(intervalId);
+      console.log('Location interval set:', intervalId);
+    } catch (error) {
+      console.error('Error starting location updates:', error);
+    }
+  }, [emitLocation, locationInterval]);
+
+  // Cleanup interval on unmount
+  useEffect(() => {
+    return () => {
+      if (locationInterval) {
+        console.log('Cleaning up interval on unmount');
+        clearInterval(locationInterval);
+      }
+    };
+  }, [locationInterval]);
+
+  const getCurrentLocation = () => {
+    return new Promise((resolve, reject) => {
+      if (!navigator.geolocation) {
+        reject(new Error('Geolocation is not supported by your browser'));
+      } else {
+        navigator.geolocation.getCurrentPosition(resolve, reject);
+      }
+    });
+  };
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -46,31 +134,6 @@ function EmergencyAssistance() {
       ...prev,
       [name]: type === 'checkbox' ? checked : value
     }));
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setIsRequesting(true);
-
-    // Add location if sharing is enabled
-    if (formData.shareLocation) {
-      try {
-        const position = await getCurrentLocation();
-        formData.coordinates = {
-          latitude: position.coords.latitude,
-          longitude: position.coords.longitude
-        };
-
-        // Start emitting location to the WebSocket server
-        console.log('start logging');
-        emitLocation(position.coords);
-      } catch (error) {
-        console.error('Error getting location:', error);
-      }
-    }
-
-    console.log('Emergency Request Data:', formData);
-    await handleEmergencySubmit();
   };
 
   const handleEmergencySubmit = async () => {
@@ -84,74 +147,63 @@ function EmergencyAssistance() {
       longitude: formData.coordinates?.longitude || null
     };
 
-    fetch('http://127.0.0.1:3001/api/emergency', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(emergencyData),
-    })
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error('Failed to create emergency.');
-        }
-        return response.json();
-      })
-      .then(() => {
-        alert('Emergency services have been notified. Stay calm, help is on the way.');
-        setShowModal(false);
-        resetForm();
-      })
-      .catch((error) => {
-        console.error('Error creating emergency:', error);
-        alert('Failed to notify emergency services. Please try again.');
-      })
-      .finally(() => {
-        setIsRequesting(false);
+    try {
+      const response = await fetch('http://127.0.0.1:3001/api/emergency', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(emergencyData),
       });
+
+      if (!response.ok) {
+        throw new Error('Failed to create emergency.');
+      }
+
+      const data = await response.json();
+      console.log('Parsed response body:', data);
+      
+      setUuid(data.id);
+      console.log('Emergency request created with ID:', data.id);
+
+      if (formData.shareLocation) {
+        // Wait a moment for the uuid to be set in the ref
+        setTimeout(async () => {
+          console.log('Starting location updates after emergency creation');
+          await startLocationUpdates();
+        }, 100);
+      }
+
+      alert('Emergency services have been notified. Stay calm, help is on the way.');
+      setShowModal(false);
+      resetForm();
+    } catch (error) {
+      console.error('Error creating emergency:', error);
+      alert('Failed to notify emergency services. Please try again.');
+    } finally {
+      setIsRequesting(false);
+    }
   };
 
-  const getCurrentLocation = () => {
-    return new Promise((resolve, reject) => {
-      if (!navigator.geolocation) {
-        reject(new Error('Geolocation is not supported by your browser'));
-      } else {
-        navigator.geolocation.getCurrentPosition(resolve, reject);
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setIsRequesting(true);
+
+    if (formData.shareLocation) {
+      try {
+        const position = await getCurrentLocation();
+        formData.coordinates = {
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude
+        };
+      } catch (error) {
+        console.error('Error getting location:', error);
       }
-    });
+    }
+
+    console.log('Emergency Request Data:', formData);
+    await handleEmergencySubmit();
   };
-
-  const emitLocation = (coords) => {
-      if (socket) {
-        console.log(socket);
-        socket.emit('message_to_dispatcher', {
-          sender: formData.name || 'Anonymous',
-          latitude: coords.latitude,
-          longitude: coords.longitude
-        });
-
-        // Start sending location updates every 5 seconds
-        const interval = setInterval(() => {
-          navigator.geolocation.getCurrentPosition((position) => {
-            const { latitude, longitude } = position.coords;
-            socket.emit('message_to_dispatcher', {
-              sender: formData.name || 'Anonymous',
-              latitude,
-              longitude
-            });
-            console.log({
-              sender: formData.name || 'Anonymous',
-              latitude,
-              longitude
-            });
-          });
-        }, 5000);
-
-        // Stop sending when the modal is closed
-        setShowModal(false);
-        return () => clearInterval(interval);
-      }
-    };
 
   const resetForm = () => {
     setFormData({
@@ -164,6 +216,7 @@ function EmergencyAssistance() {
     });
   };
 
+  // Rest of your JSX remains the same...
   return (
     <div className="emergency-section">
       <h2>Emergency Assistance</h2>

@@ -48,6 +48,62 @@ def register_routes(app, socketio):
         except Exception as e:
             db.session.rollback()
             return jsonify({'error': str(e)}), 500
+        
+
+    @app.route('/api/emergency/<int:emergency_id>', methods=['PUT'])
+    def update_emergency(emergency_id):
+        try:
+            data = request.json
+            print(f"Received update request for emergency {emergency_id}")
+            print(f"Request data: {data}")
+            
+            emergency = Emergency.query.get(emergency_id)
+            if not emergency:
+                return jsonify({'error': 'Emergency not found'}), 404
+
+            # Check if this is just a coordinate update
+            if set(data.keys()) == {'latitude', 'longitude'}:
+                # Only update coordinates
+                if 'latitude' in data:
+                    emergency.latitude = data['latitude']
+                if 'longitude' in data:
+                    emergency.longitude = data['longitude']
+            else:
+                # Full update logic
+                if 'emergencyType' in data:
+                    emergency.emergency_type = data['emergencyType']
+                if 'description' in data:
+                    emergency.description = data['description']
+                if 'location' in data:
+                    emergency.location = data['location']
+                if 'contactName' in data:
+                    emergency.contact_name = data['contactName']
+                if 'contactNumber' in data:
+                    emergency.contact_number = data['contactNumber']
+                if 'status' in data:
+                    emergency.status = data['status']
+
+            try:
+                db.session.commit()
+                print(f"Successfully updated emergency {emergency_id}")
+            except Exception as db_error:
+                print(f"Database error: {str(db_error)}")
+                db.session.rollback()
+                raise
+
+            result = emergency.to_dict()
+            print(f"Returning: {result}")
+            
+            # Emit socket event for real-time updates
+            socketio.emit('updated_emergency', result)
+
+            return jsonify(result), 200
+
+        except Exception as e:
+            print(f"Error in update_emergency: {str(e)}")
+            db.session.rollback()
+            return jsonify({'error': str(e)}), 500
+
 
     @app.route('/api/emergency/<int:emergency_id>/status', methods=['PUT'])
     def update_emergency_status(emergency_id):
@@ -68,38 +124,3 @@ def register_routes(app, socketio):
         except Exception as e:
             db.session.rollback()
             return jsonify({'error': str(e)}), 500
-
-    # WebSocket Events
-    @socketio.on('connect')
-    def handle_connect():
-        print("Client connected")
-
-    @socketio.on('disconnect')
-    def handle_disconnect():
-        print("Client disconnected")
-
-    @socketio.on('message_to_dispatcher')
-    def handle_message_to_dispatcher(data):
-        try:
-            # Create emergency from socket message
-            emergency = Emergency(
-                emergency_type=data['emergencyType'],
-                description=data['description'],
-                location=data['location'],
-                contact_name=data['contactName'],
-                contact_number=data['contactNumber'],
-                latitude=data.get('latitude'),
-                longitude=data.get('longitude'),
-                status='NEW',
-                timestamp=datetime.utcnow()
-            )
-            
-            db.session.add(emergency)
-            db.session.commit()
-            
-            # Broadcast to all connected clients
-            socketio.emit('new_emergency', emergency.to_dict())
-            
-        except Exception as e:
-            db.session.rollback()
-            print(f"Error handling socket message: {str(e)}")
