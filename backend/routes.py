@@ -35,7 +35,8 @@ def register_routes(app, socketio):
                 longitude=data.get('longitude'),
                 status='NEW',
                 timestamp=datetime.utcnow(),
-                stream_id='NA'
+                stream_id=data.get('stream_id')
+
             )
             
             db.session.add(emergency)
