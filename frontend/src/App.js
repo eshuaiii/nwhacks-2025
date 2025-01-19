@@ -30,12 +30,6 @@ function App() {
           >
             Request Emergency
           </div>
-          <div
-            className={`tab-item ${activeTab === 'startStream' ? 'active' : ''}`}
-            onClick={() => setActiveTab('startStream')}
-          >
-            Start Stream in Browser
-          </div>
         </nav>
       </header>
       <main className="main-container">
@@ -45,7 +39,6 @@ function App() {
           </div>
         )}
         {activeTab === 'user' && <EmergencyAssistance />}
-        {activeTab === 'startStream' && <StartStream />}
       </main>
     </div>
   );
