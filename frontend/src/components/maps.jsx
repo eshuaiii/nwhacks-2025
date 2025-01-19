@@ -24,7 +24,7 @@ const MyLocationMap = () => {
   useEffect(() => {
     fetchEmergencies();
     // Poll for updates every 30 seconds
-    const interval = setInterval(fetchEmergencies, 30000);
+    const interval = setInterval(fetchEmergencies, 5000);
     return () => clearInterval(interval);
   }, []);
 
