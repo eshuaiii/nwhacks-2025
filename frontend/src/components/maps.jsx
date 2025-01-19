@@ -5,7 +5,6 @@ import axios from 'axios';
 import { io } from 'socket.io-client';
 
 const MyLocationMap = () => {
-  const [socket, setSocket] = useState(null);
   const mapboxAccessToken = process.env.REACT_APP_MAPBOX_API_KEY;
   const [viewport, setViewport] = useState({
     latitude: 37.7749,
@@ -19,24 +18,6 @@ const MyLocationMap = () => {
 
   // Set up socket connection
   useEffect(() => {
-    const newSocket = io("http://127.0.0.1:4287");
-    setSocket(newSocket);
-
-    newSocket.on('connect', () => {
-      console.log('Connected to server');
-    });
-
-    newSocket.on('disconnect', () => {
-      console.log('Disconnected from server');
-    });
-
-    newSocket.on('message_to_dispatcher', (data) => {
-      console.log('message_to_dispatcher:', data);
-    });
-
-    return () => {
-      newSocket.disconnect();
-    };
   }, []);
 
   // Fetch emergencies initially
@@ -117,12 +98,15 @@ const MyLocationMap = () => {
         emergency.latitude,
         emergency.longitude
       );
-      setViewport({
-        ...viewport,
-        latitude: emergency.latitude,
-        longitude: emergency.longitude
-      });
     }
+
+    // Zoom into the clicked emergency marker
+    setViewport((prev) => ({
+      ...prev,
+      latitude: emergency.latitude,
+      longitude: emergency.longitude,
+      zoom: Math.max(prev.zoom, 16), // Zoom level to focus on the emergency
+    }));
   };
 
   // Handle exit (deselect user)
