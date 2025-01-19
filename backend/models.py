@@ -16,6 +16,7 @@ class Emergency(db.Model):
     longitude = db.Column(db.Float)
     status = db.Column(db.String(20), default='NEW')
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+    stream_id = db.Column(db.String(255), nullable=True)
     
     def to_dict(self):
         return {
@@ -28,5 +29,6 @@ class Emergency(db.Model):
             'latitude': self.latitude,
             'longitude': self.longitude,
             'status': self.status,
-            'timestamp': self.timestamp.isoformat()
+            'timestamp': self.timestamp.isoformat(),
+            'stream_id': self.stream
         } 
