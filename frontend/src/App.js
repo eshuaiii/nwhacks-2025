@@ -9,7 +9,13 @@ function App() {
   return (
     <div className="app-container">
       <header className="app-header">
-        <h1>Emergency Dispatch System</h1>
+        <div className='app-top'>
+          <img 
+            src="/group1.svg" // Make sure the logo is placed in the public directory or adjust the path accordingly
+            alt="Emergency Dispatch Logo"
+            className="app-logo" // Optional: add a CSS class for styling
+          />
+        </div>
         <nav className="tab-navigation">
           <div 
             className={`tab-item ${activeTab === 'dispatches' ? 'active' : ''}`}
