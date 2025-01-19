@@ -1,37 +1,76 @@
 import React, { useState, useEffect } from 'react';
-import { socket } from '../socket'; // Make sure to create this socket connection file
+import { socket } from '../socket';
 
 function DispatcherView() {
   const [emergencies, setEmergencies] = useState([]);
-  const [activeSection, setActiveSection] = useState('emergencies'); // 'emergencies' or 'users'
+  const [activeSection, setActiveSection] = useState('emergencies');
 
+  // Fetch emergencies on component mount
   useEffect(() => {
-    // Listen for new emergency requests
-    socket.on('message_from_client', (data) => {
-      setEmergencies(prev => [...prev, {
-        ...data,
-        id: Date.now(), // temporary ID
-        status: 'NEW',
-        timestamp: new Date().toLocaleString()
-      }]);
+    fetchEmergencies();
+  }, []);
+
+  // Listen for real-time updates
+  useEffect(() => {
+    socket.on('new_emergency', (data) => {
+      setEmergencies(prev => [data, ...prev]);
+    });
+
+    socket.on('emergency_updated', (updatedEmergency) => {
+      setEmergencies(prev => 
+        prev.map(emergency => 
+          emergency.id === updatedEmergency.id ? updatedEmergency : emergency
+        )
+      );
     });
 
     return () => {
-      socket.off('message_from_client');
+      socket.off('new_emergency');
+      socket.off('emergency_updated');
     };
   }, []);
 
-  const handleStatusChange = (id, newStatus) => {
-    setEmergencies(prev =>
-      prev.map(emergency =>
-        emergency.id === id ? { ...emergency, status: newStatus } : emergency
-      )
-    );
+  const fetchEmergencies = async () => {
+    try {
+      const response = await fetch('http://localhost:3001/api/emergencies');
+      if (!response.ok) {
+        throw new Error('Failed to fetch emergencies');
+      }
+      const data = await response.json();
+      setEmergencies(data);
+    } catch (error) {
+      console.error('Error fetching emergencies:', error);
+    }
+  };
+
+  const handleStatusChange = async (id, newStatus) => {
+    try {
+      const response = await fetch(`http://localhost:3001/api/emergency/${id}/status`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ status: newStatus })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update emergency status');
+      }
+
+      const updatedEmergency = await response.json();
+      setEmergencies(prev =>
+        prev.map(emergency =>
+          emergency.id === id ? updatedEmergency : emergency
+        )
+      );
+    } catch (error) {
+      console.error('Error updating emergency status:', error);
+    }
   };
 
   return (
     <div className="dispatcher-view">
-      <div className="dispatcher-sidebar">
+      {/* <div className="dispatcher-sidebar">
         <div 
           className={`sidebar-item ${activeSection === 'emergencies' ? 'active' : ''}`}
           onClick={() => setActiveSection('emergencies')}
@@ -61,13 +100,13 @@ function DispatcherView() {
                     <span className="emergency-status">{emergency.status}</span>
                   </div>
                   <div className="emergency-details">
-                    <p><strong>Contact:</strong> {emergency.name} ({emergency.contactNumber})</p>
-                    <p><strong>Location:</strong> {emergency.location}</p>
+                    <p><strong>Contact:</strong> {emergency.contactName} ({emergency.contactNumber})</p>
+                    {emergency.location && <p><strong>Location:</strong> {emergency.location}</p>}
                     {emergency.latitude && emergency.longitude && (
                       <p><strong>GPS:</strong> {emergency.latitude}, {emergency.longitude}</p>
                     )}
                     <p><strong>Description:</strong> {emergency.description}</p>
-                    <p><strong>Time:</strong> {emergency.timestamp}</p>
+                    <p><strong>Time:</strong> {new Date(emergency.timestamp).toLocaleString()}</p>
                   </div>
                   <div className="emergency-actions">
                     <select 
@@ -90,7 +129,7 @@ function DispatcherView() {
             <p>User management functionality coming soon...</p>
           </div>
         )}
-      </div>
+      </div> */}
     </div>
   );
 }

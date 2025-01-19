@@ -1,11 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import { socket } from '../socket';
+import React, { useState } from 'react';
 
 function EmergencyAssistance() {
   const [isRequesting, setIsRequesting] = useState(false);
   const [showModal, setShowModal] = useState(false);
-  const [incidents, setIncidents] = useState([]);
   const [formData, setFormData] = useState({
     emergencyType: '',
     description: '',
@@ -24,19 +21,6 @@ function EmergencyAssistance() {
     'Other'
   ];
 
-  useEffect(() => {
-    fetchIncidents();
-  }, []);
-
-  const fetchIncidents = async () => {
-    try {
-      const response = await axios.get('http://localhost:3000/api/incidents');
-      setIncidents(response.data);
-    } catch (error) {
-      console.error('Error fetching incidents:', error);
-    }
-  };
-
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
     setFormData(prev => ({
@@ -53,30 +37,23 @@ function EmergencyAssistance() {
     e.preventDefault();
     setIsRequesting(true);
 
-    let locationData = formData.location;
     // If user agreed to share location, get their coordinates
     if (formData.shareLocation) {
       try {
         const position = await getCurrentLocation();
-        locationData = `${position.coords.latitude}, ${position.coords.longitude}`;
+        formData.coordinates = {
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude
+        };
       } catch (error) {
         console.error('Error getting location:', error);
       }
     }
 
-    // Prepare the data to send
-    const emergencyData = {
-      sender: formData.name,
-      message: `${formData.emergencyType}: ${formData.description}`,
-      location: locationData,
-      contact: formData.contactNumber,
-      timestamp: new Date().toISOString()
-    };
+    // Here you would send the formData to your backend
+    console.log('Emergency Request Data:', formData);
 
-    // Send to backend via WebSocket
-    socket.emit('message_to_dispatcher', emergencyData);
-
-    // Show confirmation and reset form
+    // Simulate API call
     setTimeout(() => {
       alert('Emergency services have been notified. Stay calm, help is on the way.');
       setIsRequesting(false);
@@ -89,7 +66,6 @@ function EmergencyAssistance() {
         contactNumber: '',
         name: ''
       });
-      fetchIncidents(); // Refresh the incidents list
     }, 1000);
   };
 
@@ -101,15 +77,6 @@ function EmergencyAssistance() {
         navigator.geolocation.getCurrentPosition(resolve, reject);
       }
     });
-  };
-
-  const toggleIncidentStatus = async (incidentId) => {
-    try {
-      await axios.put(`http://localhost:3000/api/incidents/${incidentId}/toggle`);
-      fetchIncidents(); // Refresh the incidents list
-    } catch (error) {
-      console.error('Error toggling incident status:', error);
-    }
   };
 
   return (
@@ -227,46 +194,6 @@ function EmergencyAssistance() {
             </div>
           </div>
         )}
-
-        {/* Active Incidents List */}
-        <div className="incidents-list">
-          <h3>Active Incidents</h3>
-          {incidents
-            .filter(incident => incident.is_active)
-            .map(incident => (
-              <div key={incident.id} className="incident-card">
-                <p><strong>Message:</strong> {incident.message}</p>
-                <p><strong>Location:</strong> {incident.location}</p>
-                <p><strong>Time:</strong> {new Date(incident.timestamp).toLocaleString()}</p>
-                <button 
-                  onClick={() => toggleIncidentStatus(incident.id)}
-                  className="resolve-button"
-                >
-                  Resolve Incident
-                </button>
-              </div>
-            ))}
-        </div>
-
-        {/* Resolved Incidents List */}
-        <div className="incidents-list">
-          <h3>Resolved Incidents</h3>
-          {incidents
-            .filter(incident => !incident.is_active)
-            .map(incident => (
-              <div key={incident.id} className="incident-card resolved">
-                <p><strong>Message:</strong> {incident.message}</p>
-                <p><strong>Location:</strong> {incident.location}</p>
-                <p><strong>Time:</strong> {new Date(incident.timestamp).toLocaleString()}</p>
-                <button 
-                  onClick={() => toggleIncidentStatus(incident.id)}
-                  className="reopen-button"
-                >
-                  Reopen Incident
-                </button>
-              </div>
-            ))}
-        </div>
 
         <div className="emergency-instructions">
           <h3>After Requesting Emergency Services:</h3>
