@@ -21,7 +21,7 @@ function EmergencyAssistance() {
 
   // Use a ref to always have access to the latest uuid
   const uuidRef = useRef(null);
-  
+
   // Keep the ref in sync with the state
   useEffect(() => {
     uuidRef.current = uuid;
@@ -42,15 +42,15 @@ function EmergencyAssistance() {
       latitude: coords.latitude,
       longitude: coords.longitude,
     };
-    
+
     // Use the ref instead of the state
     const currentUuid = uuidRef.current;
-    
+
     if (currentUuid) {
       try {
         console.log('Updating location for emergency:', currentUuid);
         console.log('Location data:', locationData);
-        
+
         const response = await fetch(`http://127.0.0.1:3001/api/emergency/${currentUuid}`, {
           method: 'PUT',
           headers: {
@@ -177,181 +177,185 @@ function EmergencyAssistance() {
     };
 
     try {
-        const response = await fetch('http://127.0.0.1:3001/api/emergency', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(emergencyData),
-        });
+      const response = await fetch('http://127.0.0.1:3001/api/emergency', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(emergencyData),
+      });
 
-        if (!response.ok) {
-            throw new Error('Failed to create emergency.');
-          }
-        alert('Emergency services have been notified. Stay calm, help is on the way.');
-        setShowModal(false);
-        resetForm();
-        const data = await response.json();
-        setUuid(data.id);
-        console.log(data)
-
-        if (formData.shareLocation) {
-            // Wait a moment for the uuid to be set in the ref
-            setTimeout(async () => {
-              console.log('Starting location updates after emergency creation');
-              await startLocationUpdates();
-            }, 100);
-          }
-
-        // Now create the stream, capturing its key
-        const key = await createStream();
-        console.log('EmergencyAssistance then:', key);
-        setStreamKey(key);
-
-        // Finally show the StartStream component
-        setShowStartStream(true);
-      } catch (error) {
-        console.error('Error creating emergency:', error);
-        alert('Failed to notify emergency services. Please try again.');
-      } finally {
-        setIsRequesting(false);
+      if (!response.ok) {
+        throw new Error('Failed to create emergency.');
       }
-    };
-    const resetForm = () => {
-        setFormData({
-          emergencyType: '',
-          description: '',
-          location: '',
-          shareLocation: false,
-          contactNumber: '',
-          name: ''
-        });
-      };
-    return (
-        <div className="emergency-section">
-          <h2>Emergency Assistance</h2>
-    
-          <div className="emergency-info">
-            <p className="emergency-notice">
-              If this is a life-threatening emergency, immediately call 911 directly.
-            </p>
-    
-            <div className="emergency-instructions">
-              <h3>Important Instructions:</h3>
-              <ol>
-                <li>Stay calm and remain in a safe location</li>
-                <li>Keep your phone nearby</li>
-                <li>Follow any instructions provided by emergency dispatchers</li>
-                <li>If possible, send someone to meet emergency responders</li>
-              </ol>
-            </div>
-    
-            <div className="emergency-actions">
-              <button
-                className="emergency-button"
-                onClick={() => setShowModal(true)}
-              >
-                Request Emergency Services
-              </button>
-            </div>
-          </div>
-    
-          {/* Modal for entering emergency details */}
-          {showModal && (
-            <div className="modal-overlay">
-              <div className="modal-content">
-                <h3>Emergency Request Details</h3>
-                <form onSubmit={handleSubmit}>
-                  <div className="form-group">
-                    <label>Type of Emergency:</label>
-                    <select
-                      name="emergencyType"
-                      value={formData.emergencyType}
-                      onChange={handleInputChange}
-                      required
-                    >
-                      <option value="">Select Emergency Type</option>
-                      {['Medical Emergency', 'Fire', 'Police Emergency', 'Traffic Accident', 'Natural Disaster', 'Other'].map(type => (
-                        <option key={type} value={type}>{type}</option>
-                      ))}
-                    </select>
-                  </div>
-    
-                  <div className="form-group">
-                    <label>Your Name:</label>
-                    <input
-                      type="text"
-                      name="name"
-                      value={formData.name}
-                      onChange={handleInputChange}
-                      required
-                    />
-                  </div>
-    
-                  <div className="form-group">
-                    <label>Contact Number:</label>
-                    <input
-                      type="tel"
-                      name="contactNumber"
-                      value={formData.contactNumber}
-                      onChange={handleInputChange}
-                      required
-                    />
-                  </div>
-    
-                  <div className="form-group">
-                    <label>Description of Emergency:</label>
-                    <textarea
-                      name="description"
-                      value={formData.description}
-                      onChange={handleInputChange}
-                      required
-                      placeholder="Please provide details about the emergency..."
-                    />
-                  </div>
-    
-                  <div className="form-group checkbox">
-                    <label>
-                      <input
-                        type="checkbox"
-                        name="shareLocation"
-                        checked={formData.shareLocation}
-                        onChange={handleInputChange}
-                      />
-                      Share my current location
-                    </label>
-                  </div>
-    
-                  <div className="modal-actions">
-                    <button
-                      type="button"
-                      onClick={() => setShowModal(false)}
-                      className="cancel-button"
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      type="submit"
-                      className="submit-button"
-                      disabled={isRequesting}
-                    >
-                      {isRequesting ? 'Sending Request...' : 'Send Emergency Request'}
-                    </button>
-                  </div>
-                </form>
-              </div>
-            </div>
-          )}
-    
-          {/* Display the streamKey for debugging if you want */}
-          <p>{streamKey}</p>
-    
-          {/* Conditionally render StartStream once we have a streamKey */}
-          {showStartStream && <StartStream streamKey={streamKey} />}
-        </div>
-      );
-};
+      alert('Emergency services have been notified. Stay calm, help is on the way.');
+      setShowModal(false);
+      resetForm();
 
-  
+      const data = await response.json();
+      console.log(data);
+
+      // Safely capture the new UUID in a local variable
+      const newUuid = data.id;
+      setUuid(newUuid);
+
+      if (formData.shareLocation) {
+        // Slight delay to ensure the ref is updated
+        setTimeout(async () => {
+          console.log('Starting location updates after emergency creation');
+          await startLocationUpdates();
+        }, 100);
+      }
+
+      // Use the local `newUuid` (guaranteed not null) to create the stream
+      const key = await createStream(newUuid);
+      console.log('EmergencyAssistance then:', key);
+      setStreamKey(key);
+
+      // Finally, show the StartStream component
+      setShowStartStream(true);
+    } catch (error) {
+      console.error('Error creating emergency:', error);
+      alert('Failed to notify emergency services. Please try again.');
+    } finally {
+      setIsRequesting(false);
+    }
+  };
+
+  const resetForm = () => {
+    setFormData({
+      emergencyType: '',
+      description: '',
+      location: '',
+      shareLocation: false,
+      contactNumber: '',
+      name: ''
+    });
+  };
+
+  return (
+    <div className="emergency-section">
+      <h2>Emergency Assistance</h2>
+
+      <div className="emergency-info">
+        <p className="emergency-notice">
+          If this is a life-threatening emergency, immediately call 911 directly.
+        </p>
+
+        <div className="emergency-instructions">
+          <h3>Important Instructions:</h3>
+          <ol>
+            <li>Stay calm and remain in a safe location</li>
+            <li>Keep your phone nearby</li>
+            <li>Follow any instructions provided by emergency dispatchers</li>
+            <li>If possible, send someone to meet emergency responders</li>
+          </ol>
+        </div>
+
+        <div className="emergency-actions">
+          <button
+            className="emergency-button"
+            onClick={() => setShowModal(true)}
+          >
+            Request Emergency Services
+          </button>
+        </div>
+      </div>
+
+      {/* Modal for entering emergency details */}
+      {showModal && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <h3>Emergency Request Details</h3>
+            <form onSubmit={handleSubmit}>
+              <div className="form-group">
+                <label>Type of Emergency:</label>
+                <select
+                  name="emergencyType"
+                  value={formData.emergencyType}
+                  onChange={handleInputChange}
+                  required
+                >
+                  <option value="">Select Emergency Type</option>
+                  {['Medical Emergency', 'Fire', 'Police Emergency', 'Traffic Accident', 'Natural Disaster', 'Other'].map(type => (
+                    <option key={type} value={type}>{type}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="form-group">
+                <label>Your Name:</label>
+                <input
+                  type="text"
+                  name="name"
+                  value={formData.name}
+                  onChange={handleInputChange}
+                  required
+                />
+              </div>
+
+              <div className="form-group">
+                <label>Contact Number:</label>
+                <input
+                  type="tel"
+                  name="contactNumber"
+                  value={formData.contactNumber}
+                  onChange={handleInputChange}
+                  required
+                />
+              </div>
+
+              <div className="form-group">
+                <label>Description of Emergency:</label>
+                <textarea
+                  name="description"
+                  value={formData.description}
+                  onChange={handleInputChange}
+                  required
+                  placeholder="Please provide details about the emergency..."
+                />
+              </div>
+
+              <div className="form-group checkbox">
+                <label>
+                  <input
+                    type="checkbox"
+                    name="shareLocation"
+                    checked={formData.shareLocation}
+                    onChange={handleInputChange}
+                  />
+                  Share my current location
+                </label>
+              </div>
+
+              <div className="modal-actions">
+                <button
+                  type="button"
+                  onClick={() => setShowModal(false)}
+                  className="cancel-button"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="submit-button"
+                  disabled={isRequesting}
+                >
+                  {isRequesting ? 'Sending Request...' : 'Send Emergency Request'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Display the streamKey for debugging if you want */}
+      <p>{streamKey}</p>
+
+      {/* Conditionally render StartStream once we have a streamKey */}
+      {showStartStream && <StartStream streamKey={streamKey} />}
+    </div>
+  );
+}
 
 export default EmergencyAssistance;

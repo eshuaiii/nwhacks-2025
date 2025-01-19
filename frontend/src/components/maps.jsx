@@ -98,16 +98,16 @@ const MyLocationMap = () => {
         emergency.latitude,
         emergency.longitude
       );
-  }
+    }
 
-  // Zoom into the clicked emergency marker
-  setViewport((prev) => ({
-    ...prev,
-    latitude: emergency.latitude,
-    longitude: emergency.longitude,
-    zoom: Math.max(prev.zoom, 16), // Zoom level to focus on the emergency
-  }));
-};
+    // Zoom into the clicked emergency marker
+    setViewport((prev) => ({
+      ...prev,
+      latitude: emergency.latitude,
+      longitude: emergency.longitude,
+      zoom: Math.max(prev.zoom, 16), // Zoom level to focus on the emergency
+    }));
+  };
 
   // Handle exit (deselect user)
   const handleExitClick = () => {
@@ -217,7 +217,7 @@ const MyLocationMap = () => {
             <p><strong>Location:</strong> {selectedEmergency.location}</p>
             <p><strong>Contact:</strong> {selectedEmergency.contactName} ({selectedEmergency.contactNumber})</p>
             <iframe
-              src="https://lvpr.tv?v=${selectedEmergency.stream_id}"
+              src={`https://lvpr.tv?v=${selectedEmergency.stream_id}`}
               allowfullscreen
               allow="autoplay; encrypted-media; fullscreen; picture-in-picture"
               frameborder="0"
