@@ -88,6 +88,16 @@ function EmergencyAssistance() {
           If this is a life-threatening emergency, immediately call 911 directly.
         </p>
         
+        <div className="emergency-instructions">
+          <h3>Important Instructions:</h3>
+          <ol>
+            <li>Stay calm and remain in a safe location</li>
+            <li>Keep your phone nearby</li>
+            <li>Follow any instructions provided by emergency dispatchers</li>
+            <li>If possible, send someone to meet emergency responders</li>
+          </ol>
+        </div>
+
         <div className="emergency-actions">
           <button 
             className="emergency-button"
@@ -96,115 +106,105 @@ function EmergencyAssistance() {
             Request Emergency Services
           </button>
         </div>
-
-        {showModal && (
-          <div className="modal-overlay">
-            <div className="modal-content">
-              <h3>Emergency Request Details</h3>
-              <form onSubmit={handleSubmit}>
-                <div className="form-group">
-                  <label>Type of Emergency:</label>
-                  <select 
-                    name="emergencyType"
-                    value={formData.emergencyType}
-                    onChange={handleInputChange}
-                    required
-                  >
-                    <option value="">Select Emergency Type</option>
-                    {emergencyTypes.map(type => (
-                      <option key={type} value={type}>{type}</option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="form-group">
-                  <label>Your Name:</label>
-                  <input
-                    type="text"
-                    name="name"
-                    value={formData.name}
-                    onChange={handleInputChange}
-                    required
-                  />
-                </div>
-
-                <div className="form-group">
-                  <label>Contact Number:</label>
-                  <input
-                    type="tel"
-                    name="contactNumber"
-                    value={formData.contactNumber}
-                    onChange={handleInputChange}
-                    required
-                  />
-                </div>
-
-                <div className="form-group">
-                  <label>Description of Emergency:</label>
-                  <textarea
-                    name="description"
-                    value={formData.description}
-                    onChange={handleInputChange}
-                    required
-                    placeholder="Please provide details about the emergency..."
-                  />
-                </div>
-
-                <div className="form-group">
-                  <label>Location/Address:</label>
-                  <input
-                    type="text"
-                    name="location"
-                    value={formData.location}
-                    onChange={handleInputChange}
-                    required
-                    placeholder="Enter street address"
-                  />
-                </div>
-
-                <div className="form-group checkbox">
-                  <label>
-                    <input
-                      type="checkbox"
-                      name="shareLocation"
-                      checked={formData.shareLocation}
-                      onChange={handleInputChange}
-                    />
-                    Share my current location
-                  </label>
-                </div>
-
-                <div className="modal-actions">
-                  <button 
-                    type="button" 
-                    onClick={() => setShowModal(false)}
-                    className="cancel-button"
-                  >
-                    Cancel
-                  </button>
-                  <button 
-                    type="submit"
-                    className="submit-button"
-                    disabled={isRequesting}
-                  >
-                    {isRequesting ? 'Sending Request...' : 'Send Emergency Request'}
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        )}
-
-        <div className="emergency-instructions">
-          <h3>After Requesting Emergency Services:</h3>
-          <ol>
-            <li>Stay calm and remain in a safe location</li>
-            <li>Keep your phone nearby</li>
-            <li>Follow any instructions provided by emergency dispatchers</li>
-            <li>If possible, send someone to meet emergency responders</li>
-          </ol>
-        </div>
       </div>
+
+      {showModal && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <h3>Emergency Request Details</h3>
+            <form onSubmit={handleSubmit}>
+              <div className="form-group">
+                <label>Type of Emergency:</label>
+                <select 
+                  name="emergencyType"
+                  value={formData.emergencyType}
+                  onChange={handleInputChange}
+                  required
+                >
+                  <option value="">Select Emergency Type</option>
+                  {emergencyTypes.map(type => (
+                    <option key={type} value={type}>{type}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="form-group">
+                <label>Your Name:</label>
+                <input
+                  type="text"
+                  name="name"
+                  value={formData.name}
+                  onChange={handleInputChange}
+                  required
+                />
+              </div>
+
+              <div className="form-group">
+                <label>Contact Number:</label>
+                <input
+                  type="tel"
+                  name="contactNumber"
+                  value={formData.contactNumber}
+                  onChange={handleInputChange}
+                  required
+                />
+              </div>
+
+              <div className="form-group">
+                <label>Description of Emergency:</label>
+                <textarea
+                  name="description"
+                  value={formData.description}
+                  onChange={handleInputChange}
+                  required
+                  placeholder="Please provide details about the emergency..."
+                />
+              </div>
+
+              <div className="form-group">
+                <label>Location/Address:</label>
+                <input
+                  type="text"
+                  name="location"
+                  value={formData.location}
+                  onChange={handleInputChange}
+                  required
+                  placeholder="Enter street address"
+                />
+              </div>
+
+              <div className="form-group checkbox">
+                <label>
+                  <input
+                    type="checkbox"
+                    name="shareLocation"
+                    checked={formData.shareLocation}
+                    onChange={handleInputChange}
+                  />
+                  Share my current location
+                </label>
+              </div>
+
+              <div className="modal-actions">
+                <button 
+                  type="button" 
+                  onClick={() => setShowModal(false)}
+                  className="cancel-button"
+                >
+                  Cancel
+                </button>
+                <button 
+                  type="submit"
+                  className="submit-button"
+                  disabled={isRequesting}
+                >
+                  {isRequesting ? 'Sending Request...' : 'Send Emergency Request'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -123,41 +123,8 @@ body {
   color: white;
 }
 
-.emergency-actions {
-  display: flex;
-  justify-content: center;
-  margin: 2rem 0;
-}
-
-.emergency-button {
-  padding: 1.5rem 3rem;
-  font-size: 1.2rem;
-  font-weight: bold;
-  background-color: #dc3545;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.emergency-button:hover:not(:disabled) {
-  background-color: #c82333;
-  transform: scale(1.05);
-}
-
-.emergency-button:disabled {
-  background-color: #6c757d;
-  cursor: not-allowed;
-}
-
-.emergency-button.requesting {
-  background-color: #6c757d;
-  animation: pulse 1.5s infinite;
-}
-
 .emergency-instructions {
-  margin-top: 2rem;
+  margin-bottom: 2rem;
   padding: 1rem;
   background-color: #f8f9fa;
   border-radius: 4px;
@@ -176,6 +143,43 @@ body {
 
 .emergency-instructions li {
   margin-bottom: 0.5rem;
+}
+
+.emergency-actions {
+  display: flex;
+  justify-content: center;
+  margin: 0 auto 2rem;
+  width: 100%;
+  text-align: center;
+}
+
+.emergency-button {
+  padding: 1.5rem 3rem;
+  font-size: 1.2rem;
+  font-weight: bold;
+  background-color: #dc3545;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin: 0 auto;
+  display: inline-block;
+}
+
+.emergency-button:hover:not(:disabled) {
+  background-color: #c82333;
+  transform: scale(1.05);
+}
+
+.emergency-button:disabled {
+  background-color: #6c757d;
+  cursor: not-allowed;
+}
+
+.emergency-button.requesting {
+  background-color: #6c757d;
+  animation: pulse 1.5s infinite;
 }
 
 @keyframes pulse {
@@ -403,12 +407,6 @@ body {
 
 .emergency-details strong {
   color: #2c3e50;
-}
-
-.emergency-actions {
-  margin-top: 1rem;
-  display: flex;
-  justify-content: flex-end;
 }
 
 .emergency-actions select {
