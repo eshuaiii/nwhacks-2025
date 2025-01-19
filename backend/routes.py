@@ -36,6 +36,7 @@ def register_routes(app, socketio):
                 status='NEW',
                 timestamp=datetime.utcnow(),
                 stream_id=data.get('stream_id')
+
             )
             
             db.session.add(emergency)
